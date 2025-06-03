@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Зафиксировать эмоцию - Reflect Wise</title>
+    {# Подключаем Bootstrap (Darkly theme) #}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
+    {# Подключаем Font Awesome для иконок #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {# Подключаем ваш пользовательский CSS (если есть дополнительные стили в static/style.css) #}
+    {# <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> #}
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            background-color: #222; /* Темный фон для Darkly theme */
+            color: #eee; /* Светлый текст */
+            padding-top: 20px; /* Отступ сверху */
+            padding-bottom: 20px; /* Отступ снизу */
+        }
+        .container {
+            max-width: 960px; /* Увеличиваем максимальную ширину контейнера */
+            margin: auto;
+            background: #333; /* Более темный фон контейнера */
+            padding: 30px; /* Увеличиваем отступы */
+            border-radius: 10px; /* Более скругленные углы */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Более выраженная тень */
+        }
+        h1, h2 {
+            color: #00bfff; /* Яркий синий цвет для заголовков */
+            text-align: center; /* Центрируем заголовки */
+            margin-bottom: 20px;
+        }
+        .logo {
+            display: block; /* Делаем блочным элементом */
+            margin: 0 auto 20px auto; /* Центрируем и добавляем нижний отступ */
+            width: 60px; /* Размер логотипа на внутренних страницах */
+            height: 60px; /* Размер логотипа на внутренних страницах */
+            background-color: #007bff; /* Временный фон для логотипа */
+            border-radius: 50%; /* Делаем круглым */
+        }
+         .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .flash-messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .flash-messages .success {
+            background-color: #28a745; /* Зеленый */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .info {
+            background-color: #17a2b8; /* Голубой */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .warning {
+            background-color: #ffc107; /* Желтый */
+            color: #212529;
+            border: none;
+        }
+        .flash-messages .danger {
+            background-color: #dc3545; /* Красный */
+            color: #fff;
+            border: none;
+        }
+        .form-group label {
+            font-weight: bold;
+            color: #eee; /* Светлый текст для меток */
+        }
+        .form-control {
+            background-color: #555; /* Темнее фон полей ввода */
+            color: #eee; /* Светлый текст в полях ввода */
+            border: 1px solid #666;
+        }
+        .form-control:focus {
+            background-color: #666;
+            color: #fff;
+            border-color: #00bfff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 191, 255, 0.25);
+        }
+        .btn-primary {
+            background-color: #00bfff; /* Яркий синий цвет кнопки */
+            border-color: #00bfff;
+        }
+        .btn-primary:hover {
+            background-color: #0099cc; /* Темнее синий при наведении */
+            border-color: #0099cc;
+        }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #00bfff;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .date-carousel { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .date-carousel-item { padding: 8px 12px; margin: 5px; border: 1px solid #555; border-radius: 5px; cursor: pointer; background-color: #444; color: #ccc; text-decoration: none; font-size: 0.9em; }
+        .date-carousel-item:hover { background-color: #555; color: #fff; }
+        .date-carousel-item.selected { background-color: #00bfff; color: #fff; border-color: #00bfff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        {# Отображение флеш-сообщений из Flask #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="text-center mb-4">
+             {# Место для логотипа - можно заменить на img тег с вашим лого #}
+            <div class="logo"></div>
+            <h1>Зафиксировать эмоцию</h1>
+        </div>
+
+        <form method="post" id="emotionalReportForm">
+            <div class="form-group">
+                <label for="selected_date_display">Дата события:</label>
+                <div class="date-carousel">
+                    {% for date_option in carousel_dates %}
+                        <a href="{{ url_for('new_emotional_report', date=date_option.iso_value) }}"
+                           class="date-carousel-item {% if date_option.is_selected %}selected{% endif %}"
+                           data-date-iso="{{ date_option.iso_value }}">
+                            {{ date_option.display_text }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="selected_date" id="selected_date_hidden" value="{{ selected_date_iso }}">
+            </div>
+            <hr style="border-color: #555; margin-top: 0;">
+            <div class="form-group">
+                <label for="situation">Ситуация:</label>
+                <textarea class="form-control" id="situation" name="situation" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="thought">Мысль:</label>
+                <textarea class="form-control" id="thought" name="thought" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="feelings">Чувства (опишите или перечислите):</label>
+                <textarea class="form-control" id="feelings" name="feelings" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="correction">Коррекция (Какую коррекцию мысли или поведения вы применили или могли бы применить?):</label>
+                <textarea class="form-control" id="correction" name="correction" rows="3"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="new_feelings">Новые чувства (Какие новые чувства или изменения в состоянии вы заметили после коррекции?):</label>
+                <textarea class="form-control" id="new_feelings" name="new_feelings" rows="3"></textarea>
+            </div>
+             <div class="form-group">
+                <label for="impact">Итог (Как это событие повлияло на вас или ваше поведение? Чему научило?):</label>
+                <textarea class="form-control" id="impact" name="impact" rows="3"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block mt-4"><i class="fas fa-save mr-2"></i>Сохранить эмоцию</button>
+        </form>
+
+        <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+
+    </div>
+
+    {# Подключаем скрипты Bootstrap и jQuery #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Скрипт для карусели дат не нужен, так как переход происходит по ссылкам,
+        // а выбранная дата уже установлена в скрытом поле сервером.
+    </script>
+</body>
+</html>

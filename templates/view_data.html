@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Данные за {{ view_date }} - Reflect Wise</title>
+    {# Подключаем Bootstrap (Darkly theme) #}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
+    {# Подключаем Font Awesome для иконок #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {# Подключаем ваш пользовательский CSS (если есть дополнительные стили в static/style.css) #}
+    {# <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> #}
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            background-color: #222; /* Темный фон для Darkly theme */
+            color: #eee; /* Светлый текст */
+            padding-top: 20px; /* Отступ сверху */
+            padding-bottom: 20px; /* Отступ снизу */
+        }
+        .container {
+            max-width: 960px; /* Увеличиваем максимальную ширину контейнера */
+            margin: auto;
+            background: #333; /* Более темный фон контейнера */
+            padding: 30px; /* Увеличиваем отступы */
+            border-radius: 10px; /* Более скругленные углы */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Более выраженная тень */
+        }
+        h1, h2 {
+            color: #00bfff; /* Яркий синий цвет для заголовков */
+            text-align: center; /* Центрируем заголовки */
+            margin-bottom: 20px;
+        }
+        .logo {
+            display: block; /* Делаем блочным элементом */
+            margin: 0 auto 20px auto; /* Центрируем и добавляем нижний отступ */
+            width: 60px; /* Размер логотипа на внутренних страницах */
+            height: 60px; /* Размер логотипа на внутренних страницах */
+            background-color: #007bff; /* Временный фон для логотипа */
+            border-radius: 50%; /* Делаем круглым */
+        }
+         .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .flash-messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .flash-messages .success {
+            background-color: #28a745; /* Зеленый */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .info {
+            background-color: #17a2b8; /* Голубой */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .warning {
+            background-color: #ffc107; /* Желтый */
+            color: #212529;
+            border: none;
+        }
+        .flash-messages .danger {
+            background-color: #dc3545; /* Красный */
+            color: #fff;
+            border: none;
+        }
+        .data-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #444; /* Темнее фон секции данных */
+            border-radius: 8px;
+        }
+        .data-section h3 {
+            color: #00bfff; /* Цвет заголовков секций */
+            margin-bottom: 15px;
+            border-bottom: 1px solid #555; /* Разделитель */
+            padding-bottom: 10px;
+        }
+        .data-item {
+            margin-bottom: 15px;
+        }
+        .data-item strong {
+            color: #eee; /* Светлый текст для меток */
+            display: block; /* Метка на новой строке */
+            margin-bottom: 5px;
+        }
+         .data-item p {
+             color: #ccc; /* Цвет текста данных */
+             margin: 0;
+         }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #00bfff;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        {# Отображение флеш-сообщений из Flask #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="text-center mb-4">
+             {# Место для логотипа - можно заменить на img тег с вашим лого #}
+            <div class="logo"></div>
+            <h1>Данные за {{ view_date }}</h1>
+        </div>
+
+        {# Отображение ежедневного отчета #}
+        {% if report %}
+            <div class="data-section">
+                <h3><i class="fas fa-moon mr-2"></i>Вечерние вопросы</h3>
+
+                <div class="data-item">
+                    <h4><i class="fas fa-tasks mr-2"></i>Чекин по главным задачам дня:</h4>
+                    {% if report.reviewed_tasks and report.reviewed_tasks|length > 0 %}
+                        {% for task in report.reviewed_tasks %} {# Ожидается список объектов: {name: "...", status: "...", comment: "..."} #}
+                            <div class="mb-2 p-3 border rounded" style="background-color: #3a3a3a;">
+                                <p class="mb-1"><strong>Задача:</strong> {{ task.name }}</p>
+                                <p class="mb-1"><strong>Статус:</strong> {{ task.status }}</p>
+                                {% if task.comment and task.comment|trim != "" %}
+                                    <p class="mb-0"><strong>Комментарий:</strong> {{ task.comment }}</p>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted">Информация по выполненным задачам не предоставлена или задачи не были запланированы.</p>
+                    {% endif %}
+                </div>
+                <hr style="border-color: #555;">
+
+                <div class="data-item">
+                    <strong>1. Что сегодня получилось лучше всего?</strong>
+                    <small class="d-block text-muted mb-1">Фиксирует успехи, укрепляет уверенность.</small>
+                    <p>{{ report.evening_q1 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>2. Где я сегодня вышел из зоны комфорта?</strong>
+                    <small class="d-block text-muted mb-1">Отслеживает рост через небольшие вызовы.</small>
+                    <p>{{ report.evening_q2 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>3. Что я понял(а) сегодня о себе или жизни?</strong>
+                    <small class="d-block text-muted mb-1">Накопление мудрости через опыт.</small>
+                    <p>{{ report.evening_q3 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>4. Какие моменты дня принесли мне радость или умиротворение?</strong>
+                    <small class="d-block text-muted mb-1">Учит замечать позитив в мелочах.</small>
+                    <p>{{ report.evening_q4 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>5. Что я мог(ла) бы сделать иначе для более удачного дня?</strong>
+                    <small class="d-block text-muted mb-1">Анализ без самокритики, только улучшение.</small>
+                    <p>{{ report.evening_q5 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>6. Кому и за что я особенно благодарен(а) сегодня?</strong>
+                    <small class="d-block text-muted mb-1">Закрепляет привычку благодарности.</small>
+                    <p>{{ report.evening_q6 }}</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary" role="alert">
+                Вечерние вопросы за {{ view_date }} не найдены.
+            </div>
+        {% endif %}
+
+        {# Отображение плана #}
+        {% if plan %}
+            <div class="data-section">
+                <h3><i class="fas fa-sun mr-2"></i>Утренние вопросы (настрой на день)</h3>
+                <div class="data-item">
+                    <strong>1. Какие 3 главные задачи сегодня приблизят меня к моим долгосрочным целям?</strong>
+                    <small class="d-block text-muted mb-1">Фокусирует на важном, а не на срочном.</small>
+                    {# Теперь читаем из plan.main_goals, который должен быть списком словарей [{'text': 'Задача 1'}, ...] #}
+                    {% if plan.main_goals and plan.main_goals|length > 0 %}
+                        <ul class="list-unstyled pl-3">
+                            {% for task_goal in plan.main_goals %}
+                                <li class="mb-1"><i class="fas fa-bullseye text-info mr-2"></i>{{ task_goal.text }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p class="text-muted">Задачи не указаны.</p>
+                    {% endif %}
+                </div>
+                <div class="data-item">
+                    <strong>2. Как я могу сделать сегодняшний день немного лучше, чем вчерашний?</strong>
+                    <small class="d-block text-muted mb-1">Стимулирует постоянное улучшение.</small>
+                    <p>{{ plan.morning_q2 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>3. Какое качество или mindset мне особенно пригодится сегодня?</strong>
+                    <small class="d-block text-muted mb-1">Напоминает о личностном росте.</small>
+                    <p>{{ plan.morning_q3 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>4. Кому я могу сегодня помочь или сделать приятное?</strong>
+                    <small class="d-block text-muted mb-1">Развивает доброту и социальные связи.</small>
+                    <p>{{ plan.morning_q4 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>5. Что меня сегодня вдохновляет или за что я уже сейчас благодарен?</strong>
+                    <small class="d-block text-muted mb-1">Запускает день с позитива.</small>
+                    <p>{{ plan.morning_q5 }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>6. Как я позабочусь о своем физическом и ментальном здоровье сегодня?</strong>
+                    <small class="d-block text-muted mb-1">Напоминает о балансе.</small>
+                    <p>{{ plan.morning_q6 }}</p>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-secondary" role="alert">
+                Утренние вопросы за {{ view_date }} не найдены.
+            </div>
+        {% endif %}
+
+        {# Отображение эмоциональных отчетов #}
+        {% if emotional_reports %}
+            <div class="data-section">
+                <h3><i class="far fa-grin-alt mr-2"></i>Эмоциональные события</h3>
+                {% for emotional_report in emotional_reports %}
+                    <div class="data-item">
+                        <strong>Ситуация:</strong>
+                        <p>{{ emotional_report.situation }}</p>
+                    </div>
+                    <div class="data-item">
+                        <strong>Мысль:</strong>
+                        <p>{{ emotional_report.thought }}</p>
+                    </div>
+                    <div class="data-item">
+                        <strong>Чувства:</strong>
+                        <p>{{ emotional_report.feelings }}</p>
+                    </div>
+                    {% if emotional_report.correction %}
+                    <div class="data-item">
+                        <strong>Коррекция:</strong>
+                        <p>{{ emotional_report.correction }}</p>
+                        {% if emotional_report.correction_hint_used and emotional_report.correction_hint_used not in ['custom', 'custom_web'] %}
+                            <small class="text-muted"><em>(Использована подсказка: {{ emotional_report.correction_hint_used }})</em></small>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% if emotional_report.new_feelings %}
+                    <div class="data-item">
+                        <strong>Новые чувства:</strong>
+                        <p>{{ emotional_report.new_feelings }}</p>
+                    </div>
+                    {% endif %}
+                    <div class="data-item">
+                        <strong>Итог/Влияние:</strong>
+                        <p>{{ emotional_report.impact }}</p>
+                    </div>
+                    {% if not loop.last %}
+                        <hr style="border-color: #555;"> {# Разделитель между эмоциональными отчетами #}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="alert alert-secondary" role="alert">
+                Эмоциональные записи за {{ view_date }} не найдены.
+            </div>
+        {% endif %}
+
+        {# Отображение Рекомендаций #}
+        {% if recommendations_for_date %}
+            <div class="data-section">
+                <h3><i class="fas fa-lightbulb mr-2"></i>Рекомендации за день</h3>
+                {% for rec in recommendations_for_date %}
+                    <div class="data-item recommendation-item mb-3 p-3 border rounded bg-darker-2">
+                        {{ rec.text | safe }}
+                    </div>
+                     {% if not loop.last %}
+                        <hr style="border-color: #555;">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            {# Можно не выводить ничего, если рекомендаций нет, или вывести сообщение #}
+            <!-- <div class="alert alert-info" role="alert">Рекомендации за {{ view_date }} пока отсутствуют.</div> -->
+        {% endif %}
+
+        <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+
+    </div>
+
+    {# Подключаем скрипты Bootstrap и jQuery #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

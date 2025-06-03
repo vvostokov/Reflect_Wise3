@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Планировщик - Reflect Wise</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <!-- jsTree CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default-dark/style.min.css" />
+    <style>
+        
+        body { background-color: #222; color: #eee; padding-top: 20px; }
+        .container-fluid { max-width: 1400px; margin: auto; background: #333; padding: 20px; border-radius: 8px; }
+        h1, h2 { color: #00bfff; }
+        .tree-container { border: 1px solid #555; padding: 15px; border-radius: 5px; margin-bottom: 20px; min-height: 300px; background-color: #2a2a2a; }
+        .action-buttons button, .global-actions button { margin-right: 10px; margin-bottom: 10px; }
+        #itemFormModal .form-control { background-color: #444; color: #fff; border-color: #555; }
+        #itemFormModal .form-control:focus { background-color: #555; color: #fff; border-color: #00bfff; }
+        .ai-tree-container { margin-top: 20px; border: 1px solid #00bfff; padding: 15px; border-radius: 5px; background-color: #2c3e50; }
+        .jstree-default-dark .jstree-node, .jstree-default-dark .jstree-leaf { color: #ccc; }
+        .jstree-default-dark .jstree-clicked { background: #007bff; color: #fff; }
+        .jstree-default-dark .jstree-hovered { background: #444; }
+        /* Типы узлов для jsTree */
+        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.MISSION-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.GOAL-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF9800" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.PROJECT-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234CAF50" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.TASK-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232196F3" width="18px" height="18px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.SUBTASK-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2303A9F4" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        .tree-controls {
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #3a3a3a;
+            border-radius: 5px;
+            border: 1px solid #555;
+        }
+        .tree-controls .btn-group {
+            margin-right: 15px;
+        }
+        .tree-controls strong {
+            display: block;
+            margin-bottom: 8px;
+            color: #00bfff;
+        }
+        #aiTreeActions { margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h1><i class="fas fa-sitemap"></i> Планировщик</h1>
+            <a href="{{ url_for('index') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> На главную</a>
+        </div>
+
+        <div class="tree-controls">
+            <strong><i class="fas fa-eye"></i> Управление отображением деревьев:</strong>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Свернуть до уровня">
+                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="MISSION">Миссии</button>
+                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="GOAL">Цели</button>
+                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="PROJECT">Проекты</button>
+                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="TASK">Задачи</button>
+                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="SUBTASK">Подзадачи</button>
+            </div>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Развернуть/Свернуть всё">
+                <button type="button" class="btn btn-outline-info" id="expandAllTreesBtn"><i class="fas fa-expand-arrows-alt"></i> Развернуть всё</button>
+                <button type="button" class="btn btn-outline-warning" id="collapseAllTreesBtn"><i class="fas fa-compress-arrows-alt"></i> Свернуть всё</button>
+            </div>
+        </div>
+
+        <div class="tree-controls" id="statusFilterControls">
+            <strong><i class="fas fa-filter"></i> Фильтр по статусу (для "Ваша структура"):</strong>
+            <div id="statusCheckboxesContainer" class="d-flex flex-wrap mt-2 mb-2">
+                <!-- Checkboxes will be dynamically inserted here -->
+            </div>
+            <div class="btn-group btn-group-sm">
+                <button type="button" class="btn btn-outline-primary" id="applyStatusFilterBtn"><i class="fas fa-check"></i> Применить фильтр</button>
+                <button type="button" class="btn btn-outline-secondary" id="resetStatusFilterBtn"><i class="fas fa-times"></i> Сбросить</button>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-7">
+                <h2><i class="fas fa-network-wired"></i> Ваша структура</h2>
+                <div class="action-buttons mb-2" id="contextActions" style="display: none;">
+                    <button id="btnEditItem" class="btn btn-sm btn-info"><i class="fas fa-edit"></i> Редактировать</button>
+                    <button id="btnAddChildItem" class="btn btn-sm btn-success"><i class="fas fa-plus-circle"></i> Добавить дочерний</button>
+                    <button id="btnAiSuggestChildren" class="btn btn-sm btn-outline-primary"><i class="fas fa-magic"></i> AI Предложить дочерние</button>
+                    <button id="btnDeleteItem" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Удалить</button>
+                </div>
+                <div id="planTree" class="tree-container user-tree-container">
+                    <!-- Дерево будет здесь -->
+                </div>
+                <div class="global-actions mt-3">
+                    <button id="btnCreateMissionRoot" class="btn btn-primary"><i class="fas fa-flag-checkered"></i> Новая Миссия</button>
+                    <button id="btnCreateGoalRoot" class="btn btn-warning"><i class="fas fa-bullseye"></i> Новая Цель</button>
+                    <button id="btnCreateProjectRoot" class="btn btn-info"><i class="fas fa-folder-open"></i> Новый Проект</button>
+                    <button id="btnCreateTaskRoot" class="btn btn-secondary"><i class="fas fa-tasks"></i> Новая Задача</button>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <h2><i class="fas fa-magic"></i> AI Помощник</h2>
+                <button id="btnOptimizeStructure" class="btn btn-outline-info mb-2"><i class="fas fa-lightbulb"></i> Предложить оптимизацию</button>
+                <button id="btnGenerateAiTree" class="btn btn-outline-success mb-2"><i class="fas fa-robot"></i> Сгенерировать структуру с AI</button>
+                <div id="aiTreeActions" style="display:none;">
+                    <button id="btnCopyAiNode" class="btn btn-sm btn-primary"><i class="fas fa-copy"></i> Скопировать в мою структуру</button>
+                </div>
+                <div id="aiTree" class="tree-container ai-tree-container" style="display:none;">
+                    <!-- AI дерево будет здесь -->
+                </div>
+                 <div id="aiSuggestions" class="mt-3 p-3 bg-dark rounded" style="display:none;">
+                    <h4>Предложения по оптимизации:</h4>
+                    <p>...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для создания/редактирования элемента -->
+    <div class="modal fade" id="itemFormModal" tabindex="-1" role="dialog" aria-labelledby="itemFormModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content bg-secondary text-white">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="itemFormModalLabel">Элемент</h5>
+                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="itemForm">
+                        <input type="hidden" id="itemId">
+                        <!-- <input type="hidden" id="itemParentIdInput"> Поле для прямого ввода ID родителя, если нужно -->
+                        <div class="form-group">
+                            <label for="itemParentSelector">Родительский элемент (оставьте пустым для корневого)</label>
+                            <select class="form-control" id="itemParentSelector">
+                                <option value="#">-- Корневой элемент --</option>
+                                <!-- Опции будут добавлены динамически -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemName">Название</label>
+                            <input type="text" class="form-control" id="itemName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemType">Тип</label>
+                            <select class="form-control" id="itemType" required>
+                                <option value="MISSION">Миссия</option>
+                                <option value="GOAL">Цель</option>
+                                <option value="PROJECT">Проект</option>
+                                <option value="TASK">Задача</option>
+                                <option value="SUBTASK">Подзадача</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemDescription">Описание</label>
+                            <textarea class="form-control" id="itemDescription" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemStatus">Статус</label>
+                            <select class="form-control" id="itemStatus">
+                                <option value="TODO">К выполнению</option>
+                                <option value="IN_PROGRESS">В процессе</option>
+                                <option value="DONE">Выполнено</option>
+                                <option value="ON_HOLD">Отложено</option>
+                                <option value="CANCELLED">Отменено</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-dark" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="saveItemButton">Сохранить</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- jsTree JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+
+    <script>
+        $(function () {
+            // --- jsTree инициализация и логика ---
+            const $planTree = $('#planTree');
+            const originalPlanTreeDataUrl = '{{ url_for("get_planning_items") }}'; // Store original URL
+            const $aiTree = $('#aiTree');
+            let currentEditId = null;
+            let allPlanItemsForParentSelector = []; // Для хранения всех узлов для селектора родителя
+            let currentParentIdForNewChild = null;
+
+            // Иерархия типов для управления сворачиванием/разворачиванием
+            const typeHierarchy = ['MISSION', 'GOAL', 'PROJECT', 'TASK', 'SUBTASK'];
+
+            /**
+             * Сворачивает дерево до указанного уровня типа.
+             * @param {object} treeInstance Экземпляр jsTree.
+             * @param {string} targetType Тип узла, до которого нужно развернуть (например, 'PROJECT').
+             * @param {string[]} currentTypeHierarchy Массив, определяющий иерархию типов.
+             */
+            function expandTreeToLevelByType(treeInstance, targetType, currentTypeHierarchy) {
+                if (!treeInstance) return;
+
+                treeInstance.close_all(); // Сначала сворачиваем все узлы
+
+                const targetTypeIndex = currentTypeHierarchy.indexOf(targetType);
+                if (targetTypeIndex === -1) {
+                    console.warn("Неизвестный целевой тип для разворачивания:", targetType);
+                    // Можно развернуть всё как запасной вариант или только корневые узлы
+                    // treeInstance.open_all(); 
+                    currentTypeHierarchy.slice(0,1).forEach(rootType => { // Открываем только первый уровень (MISSION)
+                         treeInstance.get_json('#', { flat: true }).forEach(node => {
+                            if (node.type === rootType) {
+                                treeInstance.open_node(node.id, null, 0);
+                            }
+                        });
+                    });
+                    return;
+                }
+
+                const allNodes = treeInstance.get_json('#', { flat: true });
+
+                // Итеративно открываем узлы уровень за уровнем до целевого
+                for (let i = 0; i <= targetTypeIndex; i++) {
+                    const currentLevelTypeToOpen = currentTypeHierarchy[i];
+                    allNodes.forEach(node => {
+                        if (node.type === currentLevelTypeToOpen) {
+                            treeInstance.open_node(node.id, null, 0); // 0 для отсутствия анимации
+                        }
+                    });
+                }
+            }
+
+            // Применяет действие к обоим деревьям
+            function applyToBothTrees(action, ...params) {
+                const userTreeInstance = $planTree.jstree(true);
+                const aiTreeInstance = $aiTree.jstree(true);
+
+                if (userTreeInstance) action(userTreeInstance, ...params);
+                // Применяем к AI дереву, только если оно инициализировано и видимо
+                if (aiTreeInstance && $aiTree.is(':visible')) action(aiTreeInstance, ...params);
+            }
+
+            function initializeTree(selector, dataUrlOrData, isAiTree = false) {
+                const treeConfig = {
+                    'core': {
+                        'data': dataUrlOrData, // URL для AJAX или массив данных
+                        'check_callback': true, // Разрешает DND, create, delete и т.д.
+                        'themes': {
+                            'name': 'default-dark', // Используем темную тему
+                            'responsive': true
+                        }
+                    },
+                    'plugins': ['types', 'contextmenu', 'dnd', 'wholerow'], // dnd для drag-n-drop
+                    'types': {
+                        "default": { "icon": "fas fa-ellipsis-h text-secondary" }, // Иконка по умолчанию
+                        "MISSION": { "icon": "MISSION-icon" }, // Используем кастомные CSS классы
+                        "GOAL": { "icon": "GOAL-icon" },
+                        "PROJECT": { "icon": "PROJECT-icon" },
+                        "TASK": { "icon": "TASK-icon" },
+                        "SUBTASK": { "icon": "SUBTASK-icon" },
+                        "INFO": { "icon": "fas fa-info-circle text-info" },
+                        "ERROR": { "icon": "fas fa-exclamation-triangle text-danger" }
+                    },
+                    'contextmenu': {
+                        'items': function (node) {
+                            if (isAiTree) return {}; // Нет контекстного меню для AI дерева
+                            var items = {
+                                "edit": {
+                                    "label": "Редактировать",
+                                    "icon": "fas fa-edit text-info",
+                                    "action": function (data) {
+                                        var inst = $.jstree.reference(data.reference);
+                                        var nodeObj = inst.get_node(data.reference);
+                                        openItemForm('edit', nodeObj);
+                                    }
+                                },
+                                "create_child": {
+                                    "label": "Добавить дочерний",
+                                    "icon": "fas fa-plus-circle text-success",
+                                    "action": function (data) {
+                                        var inst = $.jstree.reference(data.reference);
+                                        var nodeObj = inst.get_node(data.reference);
+                                        openItemForm('new_child', nodeObj);
+                                    }
+                                },
+                                "delete": {
+                                    "label": "Удалить",
+                                    "icon": "fas fa-trash text-danger",
+                                    "action": function (data) {
+                                        var inst = $.jstree.reference(data.reference);
+                                        var nodeObj = inst.get_node(data.reference);
+                                        if (confirm("Вы уверены, что хотите удалить '" + nodeObj.text + "' и все дочерние элементы?")) {
+                                            deleteItem(nodeObj.id);
+                                        }
+                                    }
+                                }
+                            };
+                            if (node.type === "MISSION") {
+                                // Миссии не могут быть дочерними (в текущей логике)
+                                // delete items.rename; // Пример
+                            }
+                            return items;
+                        }
+                    }
+                };
+                
+                if (typeof dataUrlOrData === 'string') { // Если URL
+                     treeConfig.core.data = {
+                        'url': dataUrlOrData,
+                        'dataType': 'json'
+                    };
+                }
+
+
+                $(selector).jstree(treeConfig)
+                .on('select_node.jstree', function (e, data) {
+                    if (isAiTree) return;
+                    const selectedNode = data.node;
+                    if (selectedNode) {
+                        $('#contextActions').show();
+                        currentEditId = selectedNode.id; // Для кнопок вне дерева
+                        currentParentIdForNewChild = selectedNode.id;
+                    }
+                })
+                .on('deselect_node.jstree', function (e, data) {
+                    if (isAiTree) {
+                        if ($aiTree.jstree('get_selected').length === 0) {
+                             $('#aiTreeActions').hide();
+                        }
+                        return;
+                    }
+                    // Если нет других выделенных узлов, скрываем кнопки
+                    if ($planTree.jstree('get_selected').length === 0) {
+                        $('#contextActions').hide();
+                        currentEditId = null;
+                        currentParentIdForNewChild = null;
+                    }
+                })
+                .on('loaded.jstree', function(e, data) {
+                    if (!isAiTree) {
+                        // После загрузки основного дерева, получаем все узлы для селектора родителя
+                        const allNodes = $planTree.jstree(true).get_json('#', { 'flat': true });
+                        allPlanItemsForParentSelector = allNodes.map(node => ({id: node.id, text: node.text, type: node.type, parent: node.parent }));
+                        // console.log("All items for parent selector:", allPlanItemsForParentSelector);
+                    }
+                })
+                .on('move_node.jstree', function(e, data) { // Обработка DND
+                    if (isAiTree) return;
+                    console.log("Node moved:", data);
+                    const nodeId = data.node.id;
+                    const newParentId = (data.parent === '#') ? null : data.parent;
+                    // const oldParentId = data.old_parent;
+                    // const position = data.position; // Индекс среди соседей
+
+                    $.ajax({
+                        url: `/api/planning_items/${nodeId}`,
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ parent_id: newParentId }), // Обновляем только parent_id
+                        success: function(response) {
+                            console.log('Node parent updated:', response);
+                            // $planTree.jstree(true).refresh(); // Можно обновить, если нужно
+                        },
+                        error: function(xhr) {
+                            alert('Ошибка при перемещении элемента: ' + xhr.responseText);
+                            $planTree.jstree(true).refresh(); // Откатить изменения на клиенте
+                        }
+                    });
+                });
+            }
+            
+            // Инициализация основного дерева
+            initializeTree('#planTree', originalPlanTreeDataUrl);
+            
+            // При выборе узла в AI дереве
+            $aiTree.on('select_node.jstree', function(e, data) {
+                if (data.node) {
+                    $('#aiTreeActions').show();
+                }
+            }).on('deselect_node.jstree', function(e, data) {
+                if ($aiTree.jstree('get_selected').length === 0) {
+                    $('#aiTreeActions').hide();
+                }
+            });
+
+            // --- Логика модального окна и CRUD ---
+            function populateParentSelector(selectedParentId = null, currentItemType = null, currentItemId = null) {
+                const $selector = $('#itemParentSelector');
+                $selector.empty().append('<option value="#">-- Корневой элемент --</option>');
+
+                // Фильтруем элементы, которые не могут быть родителями для самих себя или своих потомков (для режима редактирования)
+                // и которые соответствуют иерархии типов
+                let potentialParents = allPlanItemsForParentSelector.filter(item => {
+                    if (currentItemId && item.id.toString() === currentItemId.toString()) return false; // Не может быть родителем самого себя
+                    // TODO: Более сложная проверка, чтобы не сделать элемент своим же потомком
+                    return true;
+                });
+
+                potentialParents.forEach(item => {
+                    // Логика разрешенных родителей (упрощенная)
+                    let allowed = true;
+                    if (currentItemType === "MISSION" && item.id !== "#") allowed = false; // Миссии только корневые
+                    if (currentItemType === "GOAL" && item.type !== "MISSION" && item.id !== "#") allowed = false;
+                    // Добавьте другие правила по необходимости
+
+                    if (allowed) {
+                         // Формируем текст опции с отступами для имитации иерархии
+                        let prefix = "";
+                        let tempParentId = item.parent;
+                        let path = [item.text];
+                        while(tempParentId && tempParentId !== "#") {
+                            const parentNode = allPlanItemsForParentSelector.find(p => p.id === tempParentId);
+                            if (parentNode) {
+                                path.unshift(parentNode.text);
+                                tempParentId = parentNode.parent;
+                            } else {
+                                break;
+                            }
+                        }
+                        prefix = path.slice(0, -1).map(() => "· · ").join("");
+
+                        $selector.append(`<option value="${item.id}">${prefix}${item.text} (${item.type})</option>`);
+                    }
+                });
+
+                if (selectedParentId) {
+                    $selector.val(selectedParentId);
+                } else {
+                    $selector.val("#"); // По умолчанию корневой
+                }
+            }
+
+            function openItemForm(mode, node = null) { // mode: 'new_mission', 'new_project', 'new_task', 'new_child', 'edit'
+                $('#itemForm')[0].reset();
+                currentEditId = null;
+                let preselectedParentId = null;
+                let preselectedType = 'TASK'; // Тип по умолчанию для новых
+                let currentItemIdForParentFilter = null;
+
+                if (mode === 'edit' && node) {
+                    $('#itemFormModalLabel').text('Редактировать: ' + node.original.text); // Используем node.original.text если есть, иначе node.text
+                    $('#itemId').val(node.id);
+                    currentEditId = node.id;
+                    currentItemIdForParentFilter = node.id;
+                    $('#itemName').val(node.original.text || node.text);
+                    preselectedType = node.type;
+                    $('#itemDescription').val(node.original.description || '');
+                    $('#itemStatus').val(node.original.status || 'TODO');
+                    preselectedParentId = node.parent;
+                } else if (mode === 'new_child' && node) {
+                    $('#itemFormModalLabel').text('Новый дочерний для: ' + node.text);
+                    preselectedParentId = node.id;
+                    if (node.type === 'MISSION') preselectedType = 'GOAL';
+                    else if (node.type === 'GOAL') preselectedType = 'PROJECT';
+                    else if (node.type === 'PROJECT') preselectedType = 'TASK';
+                    else if (node.type === 'TASK') preselectedType = 'SUBTASK';
+                    else preselectedType = 'SUBTASK';
+                } else if (mode.startsWith('new_')) { // new_mission_root, new_goal_root etc. or from AI copy
+                    preselectedType = node && node.type ? node.type : mode.split('_')[1].toUpperCase();
+                    $('#itemFormModalLabel').text('Новый элемент: ' + (node && node.text ? node.text : preselectedType));
+                    if (node && node.text) $('#itemName').val(node.text); // Для копирования из AI
+                    preselectedParentId = node && node.parent ? node.parent : '#'; // Для копирования из AI
+                }
+
+                $('#itemType').val(preselectedType).prop('disabled', false);
+                populateParentSelector(preselectedParentId, preselectedType, currentItemIdForParentFilter);
+                $('#itemFormModal').modal('show');
+            }
+
+            $('#btnCreateMissionRoot').click(() => openItemForm('new_mission'));
+            $('#btnCreateGoalRoot').click(() => openItemForm('new_goal'));
+            $('#btnCreateProjectRoot').click(() => openItemForm('new_project'));
+            $('#btnCreateTaskRoot').click(() => openItemForm('new_task'));
+
+            $('#btnEditItem').click(function() {
+                const selectedNodeId = $planTree.jstree('get_selected')[0];
+                if (selectedNodeId) {
+                    const nodeObj = $planTree.jstree(true).get_node(selectedNodeId);
+                    openItemForm('edit', nodeObj);
+                } else {
+                    alert('Выберите элемент для редактирования.');
+                }
+            });
+
+            $('#btnAddChildItem').click(function() {
+                const selectedNodeId = $planTree.jstree('get_selected')[0];
+                if (selectedNodeId) {
+                    const nodeObj = $planTree.jstree(true).get_node(selectedNodeId);
+                    openItemForm('new_child', nodeObj);
+                } else {
+                    alert('Выберите родительский элемент.');
+                }
+            });
+            
+            $('#btnDeleteItem').click(function() {
+                const selectedNodeId = $planTree.jstree('get_selected')[0];
+                 if (selectedNodeId) {
+                    const nodeObj = $planTree.jstree(true).get_node(selectedNodeId);
+                    if (confirm("Вы уверены, что хотите удалить '" + nodeObj.text + "' и все дочерние элементы?")) {
+                        deleteItem(nodeObj.id);
+                    }
+                } else {
+                    alert('Выберите элемент для удаления.');
+                }
+            });
+
+
+            $('#saveItemButton').click(function() {
+                const itemId = $('#itemId').val();
+                const parentId = $('#itemParentSelector').val(); // Может быть "#" или ID
+                const itemData = {
+                    name: $('#itemName').val(),
+                    item_type: $('#itemType').val(),
+                    description: $('#itemDescription').val(),
+                    status: $('#itemStatus').val(),
+                    parent_id: parentId === '#' ? null : parentId // Отправляем null для корневых
+                };
+
+                if (!itemData.name || !itemData.item_type) {
+                    alert('Название и тип обязательны!');
+                    return;
+                }
+
+                const url = itemId ? `/api/planning_items/${itemId}` : '/api/planning_items';
+                const method = itemId ? 'PUT' : 'POST';
+
+                $.ajax({
+                    url: url,
+                    method: method,
+                    contentType: 'application/json',
+                    data: JSON.stringify(itemData),
+                    success: function(response) {
+                        $('#itemFormModal').modal('hide');
+                        // Обновляем данные для селектора родителя и дерево
+                        $.jstree.reference('#planTree').refresh_node(parentId === '#' ? '#': parentId); // Обновить родителя
+                        $.jstree.reference('#planTree').refresh(); // Полное обновление
+                        // Перезагружаем все узлы для селектора после сохранения
+                        // allPlanItemsForParentSelector = $planTree.jstree(true).get_json('#', { 'flat': true }).map(n => ({id: n.id, text: n.text, type: n.type, parent: n.parent}));
+                        $('#contextActions').hide();
+                    },
+                    error: function(xhr) {
+                        alert('Ошибка: ' + xhr.responseText);
+                    }
+                });
+            });
+
+            function deleteItem(itemId) {
+                $.ajax({
+                    url: `/api/planning_items/${itemId}`,
+                    method: 'DELETE',
+                    success: function() {
+                        // Обновляем данные для селектора родителя и дерево
+                        $.jstree.reference('#planTree').refresh();
+                        // allPlanItemsForParentSelector = $planTree.jstree(true).get_json('#', { 'flat': true }).map(n => ({id: n.id, text: n.text, type: n.type, parent: n.parent}));
+                        $('#contextActions').hide();
+                    },
+                    error: function(xhr) {
+                        alert('Ошибка при удалении: ' + xhr.responseText);
+                    }
+                });
+            }
+
+            // Кнопка "Скопировать из AI дерева"
+            $('#btnCopyAiNode').click(function() {
+                const selectedAiNodeId = $aiTree.jstree('get_selected')[0];
+                if (selectedAiNodeId) {
+                    const aiNode = $aiTree.jstree(true).get_node(selectedAiNodeId);
+                    // Открываем модальное окно, передавая данные AI узла
+                    // Тип родителя будет выбран пользователем в модальном окне
+                    openItemForm('new_ai_copy', { text: aiNode.text, type: aiNode.type, parent: '#' });
+                } else {
+                    alert('Выберите элемент в AI структуре для копирования.');
+                }
+            });
+
+
+            // --- AI Функции ---
+            $('#btnGenerateAiTree').click(function() {
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Генерация...');
+                $.ajax({
+                    url: '{{ url_for("generate_tree_ai") }}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    // data: JSON.stringify({ prompt: "Мой проект..." }) // Можно передать промпт
+                    success: function(data) {
+                        if ($aiTree.jstree(true)) {
+                            $aiTree.jstree(true).destroy();
+                        }
+                        $('#aiTree').show();
+                        initializeTree('#aiTree', data, true); // true для isAiTree
+                    },
+                    error: function(xhr) {
+                        console.error("AI Tree generation error:", xhr);
+                        alert('Ошибка генерации дерева AI: ' + (xhr.responseJSON ? xhr.responseJSON.error : xhr.statusText));
+                         $('#aiTree').show().html('<p class="text-danger">Не удалось сгенерировать дерево.</p>');
+                    },
+                    complete: function() {
+                        $('#btnGenerateAiTree').prop('disabled', false).html('<i class="fas fa-robot"></i> Сгенерировать структуру с AI');
+                    }
+                });
+            });
+            
+            $('#btnOptimizeStructure').click(function() {
+                // TODO: Собрать текущую структуру дерева $planTree.jstree(true).get_json('#', { flat: false });
+                // Отправить на сервер для анализа AI
+                // Отобразить предложения в #aiSuggestions
+                alert('Функция оптимизации структуры пока в разработке.');
+                // Пример получения данных дерева:
+                // var treeJson = $planTree.jstree(true).get_json('#', { 'flat': false }); // flat:false для иерархии
+                // console.log(JSON.stringify(treeJson, null, 2));
+            });
+            
+            $('#btnAiSuggestChildren').click(function() {
+                const selectedNodeId = $planTree.jstree('get_selected')[0];
+                if (!selectedNodeId) {
+                    alert('Выберите элемент в вашей структуре, для которого AI предложит дочерние.');
+                    return;
+                }
+                const node = $planTree.jstree(true).get_node(selectedNodeId);
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> AI думает...');
+
+                $.ajax({
+                    url: '{{ url_for("suggest_children_ai") }}',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id: node.id,
+                        name: node.text,
+                        type: node.type,
+                        description: node.original.description || ""
+                    }),
+                    success: function(suggestedChildren) {
+                        // Отображаем предложенные элементы, например, в AI дереве или новом модальном окне
+                        // Для простоты, пока просто выведем в консоль и покажем в AI дереве
+                        console.log("AI Suggested Children:", suggestedChildren);
+                        alert("AI предложил дочерние элементы. Они будут показаны в секции AI дерева (если реализация отображения готова).");
+                        // Можно очистить и заполнить AI дерево этими предложениями
+                        if ($aiTree.jstree(true)) { $aiTree.jstree(true).destroy(); }
+                        $('#aiTree').show();
+                        initializeTree('#aiTree', suggestedChildren.map(c => ({...c, id: `ai_sugg_${Date.now()}_${Math.random().toString(16).slice(2)}`, parent: '#'})), true); // Даем временные ID
+                    },
+                    error: function(xhr) { alert('Ошибка от AI: ' + (xhr.responseJSON ? xhr.responseJSON.error : xhr.statusText)); },
+                    complete: function() { $('#btnAiSuggestChildren').prop('disabled', false).html('<i class="fas fa-magic"></i> AI Предложить дочерние');}
+                });
+            });
+
+            // --- Управление отображением деревьев ---
+            $('.tree-level-btn').on('click', function() {
+                const targetType = $(this).data('level-type');
+                applyToBothTrees(expandTreeToLevelByType, targetType, typeHierarchy);
+            });
+
+            $('#collapseAllTreesBtn').on('click', function() {
+                applyToBothTrees(function(tree) { if(tree) tree.close_all(); });
+            });
+
+            $('#expandAllTreesBtn').on('click', function() {
+                applyToBothTrees(function(tree) { if(tree) tree.open_all(); });
+            });
+
+            // --- Логика фильтра по статусам ---
+            const availableStatuses = [
+                { value: 'TODO', text: 'К выполнению' },
+                { value: 'IN_PROGRESS', text: 'В процессе' },
+                { value: 'DONE', text: 'Выполнено' },
+                { value: 'ON_HOLD', text: 'Отложено' },
+                { value: 'CANCELLED', text: 'Отменено' }
+            ];
+
+            const $statusCheckboxesUiContainer = $('#statusCheckboxesContainer');
+            availableStatuses.forEach(status => {
+                $statusCheckboxesUiContainer.append(`
+                    <div class="form-check form-check-inline mr-3 mb-1">
+                        <input class="form-check-input status-filter-checkbox" type="checkbox" id="status_filter_${status.value}" value="${status.value}">
+                        <label class="form-check-label" for="status_filter_${status.value}">${status.text}</label>
+                    </div>
+                `);
+            });
+
+            $('#applyStatusFilterBtn').on('click', function() {
+                const selectedStatuses = [];
+                $('.status-filter-checkbox:checked').each(function() {
+                    selectedStatuses.push($(this).val());
+                });
+
+                let newUrl = originalPlanTreeDataUrl;
+                if (selectedStatuses.length > 0) {
+                    const params = new URLSearchParams();
+                    selectedStatuses.forEach(status => params.append('status', status));
+                    newUrl += (originalPlanTreeDataUrl.includes('?') ? '&' : '?') + params.toString();
+                }
+
+                const treeInstance = $planTree.jstree(true);
+                if (treeInstance) {
+                    treeInstance.settings.core.data.url = newUrl;
+                    treeInstance.refresh();
+                }
+            });
+
+            $('#resetStatusFilterBtn').on('click', function() {
+                $('.status-filter-checkbox').prop('checked', false);
+                const treeInstance = $planTree.jstree(true);
+                if (treeInstance) {
+                    treeInstance.settings.core.data.url = originalPlanTreeDataUrl; // Reset to original URL
+                    treeInstance.refresh();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

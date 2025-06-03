@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Ежемесячный Обзор{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2>Ежемесячный Стратегический Обзор</h2>
+        </div>
+        <div class="card-body">
+            <p>Нажмите кнопку ниже, чтобы сгенерировать глубокий анализ вашей активности за последний месяц (или более длительный период) и получить стратегические рекомендации по вашим долгосрочным целям и общему развитию.</p>
+            <p><strong>Внимание:</strong> Генерация этого обзора может занять значительно больше времени, чем обычно, так как анализируется больший объем данных и используются более сложные модели AI.</p>
+            <p>После нажатия кнопки, результат появится на <a href="{{ url_for('recommendations') }}">странице всех рекомендаций</a>.</p>
+            
+            <form method="POST" action="{{ url_for('monthly_recommendations_page') }}">
+                <button type="submit" class="btn btn-danger btn-lg">
+                    <i class="fas fa-brain"></i> Сгенерировать Ежемесячный Стратегический Обзор
+                </button>
+            </form>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('recommendations') }}" class="btn btn-secondary">Назад к рекомендациям</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

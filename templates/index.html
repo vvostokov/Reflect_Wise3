@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reflect Wise</title>
+    {# Подключаем Bootstrap (Darkly theme) #}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
+    {# Подключаем Font Awesome для иконок #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {# Подключаем ваш пользовательский CSS (если есть дополнительные стили в static/style.css) #}
+    {# <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> #}
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            background-color: #222; /* Темный фон для Darkly theme */
+            color: #eee; /* Светлый текст */
+            padding-top: 20px; /* Отступ сверху */
+            padding-bottom: 20px; /* Отступ снизу */
+        }
+        .container {
+            max-width: 960px; /* Увеличиваем максимальную ширину контейнера */
+            margin: auto;
+            background: #333; /* Более темный фон контейнера */
+            padding: 30px; /* Увеличиваем отступы */
+            border-radius: 10px; /* Более скругленные углы */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Более выраженная тень */
+        }
+        h1, h2 {
+            color: #00bfff; /* Яркий синий цвет для заголовков */
+            text-align: center; /* Центрируем заголовки */
+            margin-bottom: 20px;
+        }
+        .logo {
+            display: block; /* Делаем блочным элементом */
+            margin: 0 auto 20px auto; /* Центрируем и добавляем нижний отступ */
+            width: 80px; /* Примерный размер логотипа */
+            height: 80px; /* Примерный размер логотипа */
+            background-color: #007bff; /* Временный фон для логотипа */
+            border-radius: 50%; /* Делаем круглым */
+            /* Если есть изображение логотипа, используйте img тег */
+            /* <img src="{{ url_for('static', filename='logo.png') }}" alt="Логотип Reflect Wise" class="logo"> */
+        }
+        nav {
+            margin-bottom: 30px; /* Увеличиваем нижний отступ навигации */
+            text-align: center; /* Центрируем навигационные ссылки */
+        }
+        nav a {
+            margin: 0 10px; /* Отступ между ссылками */
+            text-decoration: none;
+            color: #00bfff; /* Цвет ссылок */
+            font-weight: bold;
+            transition: color 0.3s ease; /* Плавное изменение цвета при наведении */
+        }
+        nav a:hover {
+            color: #fff; /* Цвет при наведении */
+            text-decoration: none; /* Убираем подчеркивание при наведении */
+        }
+        .user-info {
+            margin-bottom: 20px;
+            padding: 15px; /* Увеличиваем отступы */
+            background-color: #444; /* Темнее фон для информации о пользователе */
+            color: #eee; /* Светлый текст */
+            border-left: 4px solid #28a745; /* Зеленая полоса (успех) */
+            border-radius: 8px;
+            text-align: center; /* Центрируем текст */
+        }
+        .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .flash-messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .flash-messages .success {
+            background-color: #28a745; /* Зеленый */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .info {
+            background-color: #17a2b8; /* Голубой */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .warning {
+            background-color: #ffc107; /* Желтый */
+            color: #212529;
+            border: none;
+        }
+        .flash-messages .danger {
+            background-color: #dc3545; /* Красный */
+            color: #fff;
+            border: none;
+        }
+        .action-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            text-decoration: none;
+            color: inherit; /* Наследуем цвет текста */
+            padding: 20px; /* Увеличиваем кликабельную область */
+            border-radius: 8px;
+            transition: background-color 0.3s ease; /* Плавное изменение фона */
+        }
+        .action-item:hover {
+            background-color: #555; /* Фон при наведении */
+            color: #fff;
+            text-decoration: none;
+        }
+        .action-item i {
+            margin-bottom: 15px; /* Увеличиваем отступ под иконкой */
+            color: #00bfff; /* Цвет иконок */
+        }
+        .action-item:hover i {
+             color: #fff; /* Цвет иконок при наведении */
+        }
+        .action-item p {
+            margin: 0; /* Убираем отступы у параграфа */
+            font-weight: bold;
+        }
+        .date-form .form-control {
+            max-width: 250px; /* Увеличиваем ширину поля даты */
+            margin: 10px auto; /* Центрируем поле даты и добавляем отступы */
+            background-color: #555; /* Темнее фон поля даты */
+            color: #eee; /* Светлый текст поля даты */
+            border: 1px solid #666;
+        }
+         .date-form .form-control:focus {
+             background-color: #666;
+             color: #fff;
+             border-color: #00bfff;
+             box-shadow: 0 0 0 0.2rem rgba(0, 191, 255, 0.25);
+         }
+        .date-form button {
+            margin-top: 10px; /* Отступ сверху кнопки */
+        }
+        .recommendation-section {
+            margin-top: 40px; /* Увеличиваем отступ сверху */
+            padding: 20px;
+            background-color: #444; /* Темнее фон секции рекомендаций */
+            border-left: 4px solid #17a2b8; /* Голубая полоса (инфо) */
+            border-radius: 8px;
+        }
+         .recommendation-section h3 {
+             color: #17a2b8; /* Цвет заголовка рекомендаций */
+             margin-bottom: 15px;
+         }
+         .recommendation-content {
+             color: #ccc; /* Цвет текста рекомендаций */
+         }
+         /* Стили для ссылки "Выход" */
+         .logout-link {
+             float: right; /* Прижимаем к правому краю */
+             margin-left: 20px; /* Отступ слева */
+             color: #dc3545; /* Красный цвет */
+             font-weight: bold;
+         }
+         .logout-link:hover {
+             color: #fff;
+             text-decoration: underline;
+         }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        {# Отображение флеш-сообщений из Flask #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {# Ссылка на выход, прижимаем к правому краю #}
+        <a href="{{ url_for('logout') }}" class="logout-link">Выход</a>
+
+        {# Секция с логотипом и основным заголовком #}
+        <div class="text-center mb-4">
+            {# Место для логотипа - можно заменить на img тег с вашим лого #}
+            <div class="logo"></div>
+            <h1>Reflect Wise</h1>
+            <p class="lead text-muted">Ваш интеллектуальный помощник для ежедневной рефлексии и осознанного планирования.</p>
+        </div>
+
+
+        {# Отображаем имя пользователя, если объект user передан (из web_app.py) #}
+        {% if user %}
+            <div class="user-info">
+                Привет, {{ user.first_name }}! {% if user.username %}(@{{ user.username }}){% endif %}
+            </div>
+        {% endif %}
+
+
+        {# Секция с основными действиями в виде карточек или блоков #}
+        <div class="row mt-5">
+            {# Кнопка "Составить план на день" #}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ url_for('new_plan') }}" class="action-item card bg-dark text-light">
+                    <div class="card-body">
+                        <i class="fas fa-list-check fa-3x mb-3"></i>
+                        <h5 class="card-title">Составить план на день</h5>
+                        <p class="card-text text-muted">Сформулируйте цели и действия для продуктивного дня.</p>
+                    </div>
+                </a>
+            </div>
+            {# Кнопка "Сохранить эмоциональное событие" #}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ url_for('new_emotional_report') }}" class="action-item card bg-dark text-light">
+                     <div class="card-body">
+                        <i class="far fa-grin-alt fa-3x mb-3"></i>
+                        <h5 class="card-title">Зафиксировать эмоцию</h5>
+                        <p class="card-text text-muted">Опишите ситуацию, мысль и чувства для лучшего понимания себя.</p>
+                    </div>
+                </a>
+            </div>
+            {# Кнопка "Заполнить ежедневный отчет" #}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ url_for('new_report') }}" class="action-item card bg-dark text-light">
+                    <div class="card-body">
+                        <i class="fas fa-clipboard-list fa-3x mb-3"></i>
+                        <h5 class="card-title">Заполнить ежедневный отчет</h5>
+                        <p class="card-text text-muted">Подведите итоги дня, отметьте достижения и уроки.</p>
+                    </div>
+                </a>
+            </div>
+            {# Кнопка "Планировщик" #}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ url_for('planning_page') }}" class="action-item card bg-dark text-light">
+                    <div class="card-body">
+                        <i class="fas fa-sitemap fa-3x mb-3"></i>
+                        <h5 class="card-title">Планировщик</h5>
+                        <p class="card-text text-muted">Миссии, проекты, задачи с иерархией и AI.</p>
+                    </div>
+                </a>
+            </div>
+            {# Кнопка "Мои рекомендации" #}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <a href="{{ url_for('recommendations') }}" class="action-item card bg-dark text-light">
+                    <div class="card-body">
+                        <i class="fas fa-lightbulb fa-3x mb-3"></i>
+                        <h5 class="card-title">Мои рекомендации</h5>
+                        <p class="card-text text-muted">Просмотрите персональные советы и инсайты.</p>
+                    </div>
+                </a>
+            </div>
+             {# Форма "Просмотреть данные за дату" #}
+            <div class="col-md-6 col-lg-4 mx-auto mb-4"> {# mx-auto для центрирования #}
+                <div class="action-item card bg-dark text-light date-form"> {# Используем action-item для стилей, но это div #}
+                    <div class="card-body">
+                        <i class="fas fa-calendar fa-3x mb-3"></i>
+                        <h5 class="card-title">Просмотреть записи</h5>
+                         <p class="card-text text-muted">Выберите дату для просмотра прошлых отчетов и планов.</p>
+                        <form action="{{ url_for('view_data', view_date=date.today().strftime('%Y-%m-%d')) }}" method="get" class="form-inline justify-content-center mt-3">
+                            <input type="date" id="view_date" name="view_date" value="{{ date.today().strftime('%Y-%m-%d') }}" class="form-control mr-2">
+                            <button type="submit" class="btn btn-primary"><i class="fas fa-eye mr-2"></i>Посмотреть</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+             {# Секция для рекомендаций #}
+            <div class="col-12">
+                 <div id="recommendation-container" class="recommendation-section alert alert-info" style="display:none;">
+                     <h3><i class="fas fa-lightbulb fa-lg mr-2"></i>Рекомендация дня:</h3>
+                     <div id="recommendation-content" class="recommendation-content"></div>
+                 </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    {# Подключаем скрипты Bootstrap и jQuery #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    {# Скрипт для получения рекомендаций по AJAX #}
+    <script>
+        function fetchRecommendation() {
+            // Проверяем, авторизован ли пользователь, прежде чем запрашивать рекомендации
+            // Это можно сделать, например, проверяя наличие элемента с user-info или
+            // отправляя запрос на защищенный эндпоинт, который вернет статус авторизации.
+            // Для простоты сейчас предполагаем, что если пользователь на этой странице, он авторизован.
+
+            // В более надежной реализации, сервер должен отправлять статус авторизации
+            // вместе с рендерингом страницы, или AJAX эндпоинт должен сам проверять сессию.
+            // Сейчас полагаемся на наличие user-info элемента.
+             if ($('.user-info').length === 0) {
+                 console.log("Пользователь не авторизован, опрос рекомендаций не запущен.");
+                 return; // Прекращаем опрос, если пользователь не авторизован
+             }
+
+
+            $.ajax({
+                url: '{{ url_for("recommendations") }}', // Используем url_for для генерации URL к маршруту рекомендаций
+                method: 'GET',
+                success: function(data) {
+                    // В текущей реализации recommendations() возвращает render_template, а не JSON.
+                    // Чтобы AJAX работал, маршрут recommendations должен возвращать JSON
+                    // с рекомендацией или статусом.
+                    // Временно, этот AJAX скрипт не будет работать, пока маршрут recommendations
+                    // не будет изменен для возврата JSON.
+                    // Предполагаемый формат ответа: { "recommendation": "HTML_контент_рекомендации" }
+
+                    // Ниже код, который будет работать, если recommendations() возвращает JSON:
+                    /*
+                    if (data && data.recommendation) {
+                        // Если есть рекомендация, отображаем ее
+                        $('#recommendation-content').html(data.recommendation);
+                        $('#recommendation-container').show();
+                        // Опрашиваем снова через более длительное время после получения рекомендации
+                        setTimeout(fetchRecommendation, 60000); // Опрашиваем каждые 60 секунд после получения
+                    } else {
+                        // Если рекомендации пока нет, опрашиваем чаще
+                        $('#recommendation-container').hide(); // Скрываем контейнер, если рекомендаций нет
+                        setTimeout(fetchRecommendation, 5000); // Опрашиваем каждые 5 секунд, пока не появится
+                    }
+                    */
+
+                    // В текущей реализации, маршрут recommendations рендерит HTML.
+                    // Этот AJAX запрос просто получит весь HTML страницы рекомендаций.
+                    // Чтобы отобразить только рекомендацию, нужно либо изменить маршрут recommendations
+                    // на возврат JSON, либо парсить полученный HTML.
+                    // Пока просто выведем сообщение:
+                    console.log("AJAX запрос к /recommendations успешно выполнен, но маршрут возвращает HTML, а не JSON.");
+                    // Чтобы рекомендации отображались, маршрут recommendations должен быть изменен.
+                    // Пока оставим опрос, но он не будет обновлять контент правильно.
+                     setTimeout(fetchRecommendation, 10000); // Повторяем попытку через 10 секунд
+                },
+                error: function(error) {
+                    console.error('Ошибка при получении рекомендации:', error);
+                    // В случае ошибки, повторяем попытку позже
+                    $('#recommendation-container').hide(); // Скрываем контейнер при ошибке
+                    setTimeout(fetchRecommendation, 10000); // Повторяем попытку через 10 секунд
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            // Запускаем первоначальный опрос, только если пользователь авторизован
+            // (Проверка авторизации должна быть на стороне сервера,
+            // но для AJAX запроса можно добавить клиентскую проверку, если применимо)
+             // Например, если элемент .user-info виден:
+             if ($('.user-info').length > 0) { // Проверяем, существует ли элемент .user-info
+                  // fetchRecommendation(); // Временно закомментировано, пока маршрут recommendations не возвращает JSON
+                  console.log("AJAX опрос рекомендаций временно отключен, пока маршрут /recommendations не возвращает JSON.");
+             } else {
+                 // Если пользователь не авторизован (не видит user-info), не запускаем опрос
+                 console.log("Пользователь не авторизован, опрос рекомендаций не запущен.");
+             }
+
+             // Обработка формы просмотра данных по дате
+             $('.date-form form').on('submit', function(e) {
+                 e.preventDefault(); // Предотвращаем стандартную отправку формы
+
+                 var selectedDate = $('#view_date').val();
+                 if (selectedDate) {
+                     // Генерируем URL для маршрута view_data с выбранной датой
+                     var viewUrl = "{{ url_for('view_data', view_date='PLACEHOLDER') }}".replace('PLACEHOLDER', selectedDate);
+                     window.location.href = viewUrl; // Переходим на страницу просмотра данных
+                 } else {
+                     alert('Пожалуйста, выберите дату.'); // Или используйте более красивое модальное окно
+                 }
+             });
+        });
+    </script>
+</body>
+</html>

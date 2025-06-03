@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рекомендации - Reflect Wise</title>
+    {# Подключаем Bootstrap (Darkly theme) #}
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
+    {# Подключаем Font Awesome для иконок #}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    {# Подключаем ваш пользовательский CSS (если есть дополнительные стили в static/style.css) #}
+    {# <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> #}
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            background-color: #222; /* Темный фон для Darkly theme */
+            color: #eee; /* Светлый текст */
+            padding-top: 20px; /* Отступ сверху */
+            padding-bottom: 20px; /* Отступ снизу */
+        }
+        .container {
+            max-width: 960px; /* Увеличиваем максимальную ширину контейнера */
+            margin: auto;
+            background: #333; /* Более темный фон контейнера */
+            padding: 30px; /* Увеличиваем отступы */
+            border-radius: 10px; /* Более скругленные углы */
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Более выраженная тень */
+        }
+        h1, h2 {
+            color: #00bfff; /* Яркий синий цвет для заголовков */
+            text-align: center; /* Центрируем заголовки */
+            margin-bottom: 20px;
+        }
+        .logo {
+            display: block; /* Делаем блочным элементом */
+            margin: 0 auto 20px auto; /* Центрируем и добавляем нижний отступ */
+            width: 60px; /* Размер логотипа на внутренних страницах */
+            height: 60px; /* Размер логотипа на внутренних страницах */
+            background-color: #007bff; /* Временный фон для логотипа */
+            border-radius: 50%; /* Делаем круглым */
+        }
+         .flash-messages {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .flash-messages li {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            text-align: left;
+        }
+        .flash-messages .success {
+            background-color: #28a745; /* Зеленый */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .info {
+            background-color: #17a2b8; /* Голубой */
+            color: #fff;
+            border: none;
+        }
+        .flash-messages .warning {
+            background-color: #ffc107; /* Желтый */
+            color: #212529;
+            border: none;
+        }
+        .flash-messages .danger {
+            background-color: #dc3545; /* Красный */
+            color: #fff;
+            border: none;
+        }
+        .recommendation-content {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #444; /* Темнее фон секции рекомендаций */
+            border-left: 4px solid #17a2b8; /* Голубая полоса (инфо) */
+            border-radius: 8px;
+            color: #ccc; /* Цвет текста рекомендаций */
+        }
+         .recommendation-content h3 {
+             color: #17a2b8; /* Цвет заголовка рекомендаций */
+             margin-bottom: 15px;
+         }
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            color: #00bfff;
+            font-weight: bold;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        {# Отображение флеш-сообщений из Flask #}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flash-messages">
+                {% for category, message in messages %}
+                    <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        <div class="text-center mb-4">
+             {# Место для логотипа - можно заменить на img тег с вашим лого #}
+            <div class="logo"></div>
+            <h1>Рекомендации</h1>
+        </div>
+
+        {# Отображение рекомендаций #}
+        {% if recommendations_list %}
+            {% for rec in recommendations_list %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        Рекомендация от {{ rec.date.strftime('%Y-%m-%d') }}
+                    </div>
+                    <div class="card-body recommendation-content">
+                        {# Рекомендации уже в формате HTML из markdown #}
+                        {{ rec.text | safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-secondary" role="alert">
+                У вас пока нет рекомендаций. Начните добавлять отчеты, планы или эмоциональные события, чтобы получить их.
+            </div>
+        {% endif %}
+
+
+
+        <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+
+    </div>
+
+    {# Подключаем скрипты Bootstrap и jQuery #}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
