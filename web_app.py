@@ -5,7 +5,7 @@ import urllib.parse
 import time # Для time.sleep
 import markdown # Для обработки markdown
 import json # Для работы с JSON для main_goals и task_checkin_data
-import requests # Для HTTP-запросов к VK API
+import requests # Для HTTP-запросов к VK API 
 from functools import wraps
 from datetime import datetime, date, timedelta
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response # Добавлен make_response
@@ -38,7 +38,7 @@ class MockUser:
 # Временное создание таблиц ДЛЯ ПЕРВОГО РАЗВЕРТЫВАНИЯ НА RENDER!
 # Эту строку нужно ЗАКОММЕНТИРОВАТЬ или УДАЛИТЬ после того, как таблицы будут созданы в БД на Render.
 # Она создаст таблицы DailyReport, Plan, EmotionalReport, User.
-# Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
+Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
 
 
 # Функция для получения сессии базы данных (импортируется из models.py)
@@ -769,6 +769,7 @@ def telegram_callback():
 @login_required_custom # Apply the decorator
 def index(current_user_id): # Receives current_user_id from decorator
     db: SessionLocal = next(get_db())
+    user_for_template = None # Инициализируем переменную
     try:
         if app.config.get('LOCAL_DEV_NO_LOGIN'):
             dev_user_id = app.config.get('DEFAULT_DEV_USER_ID', 1)
@@ -822,7 +823,7 @@ def new_report(current_user_id):
     db: SessionLocal = next(get_db())
     
     # Определяем дату для формы (из GET параметра или сегодня)
-    form_date_iso = request.args.get('date', datetime.utcnow().date().isoformat())
+    form_date_iso = request.args.get('date', datetime.now(timezone.utc).date().isoformat())
     form_date_obj = date.fromisoformat(form_date_iso)
     carousel_dates = get_date_carousel_options(selected_date_iso_str=form_date_iso)
 
@@ -850,7 +851,7 @@ def new_report(current_user_id):
                 i += 1
 
             # Получаем дату из формы (скрытое поле, обновляемое каруселью)
-            report_date_iso_from_form = request.form.get('selected_date', datetime.utcnow().date().isoformat())
+            report_date_iso_from_form = request.form.get('selected_date', datetime.now(timezone.utc).date().isoformat())
             report_date_obj = date.fromisoformat(report_date_iso_from_form)
 
             new_report_entry = DailyReport(
@@ -912,14 +913,14 @@ def new_plan(current_user_id):
     db: SessionLocal = next(get_db())
     try:
         # Определяем дату для формы (из GET параметра или сегодня)
-        form_date_iso = request.args.get('date', datetime.utcnow().date().isoformat())
+        form_date_iso = request.args.get('date', datetime.now(timezone.utc).date().isoformat())
         form_date_obj = date.fromisoformat(form_date_iso)
         carousel_dates = get_date_carousel_options(selected_date_iso_str=form_date_iso)
 
         if request.method == 'POST':
             try:
                 # Получаем дату из формы (скрытое поле, обновляемое каруселью)
-                plan_date_iso_from_form = request.form.get('selected_date', datetime.utcnow().date().isoformat())
+                plan_date_iso_from_form = request.form.get('selected_date', datetime.now(timezone.utc).date().isoformat())
                 plan_date_obj = date.fromisoformat(plan_date_iso_from_form)
 
                 all_task_names_for_main_goals = [] 
@@ -1034,8 +1035,8 @@ def new_plan(current_user_id):
     except Exception as e:
         print(f"Ошибка при загрузке формы плана: {e}")
         flash('Произошла ошибка при загрузке формы плана.', 'danger')
-        
-        _form_date_iso_to_render = datetime.utcnow().date().isoformat()
+
+        _form_date_iso_to_render = datetime.now(timezone.utc).date().isoformat()
         _carousel_dates_to_render = []
 
         # Check if form_date_iso was defined in the try block before the error
@@ -1069,13 +1070,13 @@ def new_plan(current_user_id):
 def new_emotional_report(current_user_id):
     db: SessionLocal = next(get_db())
 
-    form_date_iso = request.args.get('date', datetime.utcnow().date().isoformat())
+    form_date_iso = request.args.get('date', datetime.now(timezone.utc).date().isoformat())
     # form_date_obj = date.fromisoformat(form_date_iso) # Не используется в GET для этой формы
     carousel_dates = get_date_carousel_options(selected_date_iso_str=form_date_iso)
 
     if request.method == 'POST':
         try:
-            report_date_iso_from_form = request.form.get('selected_date', datetime.utcnow().date().isoformat())
+            report_date_iso_from_form = request.form.get('selected_date', datetime.now(timezone.utc).date().isoformat())
             report_date_obj = date.fromisoformat(report_date_iso_from_form)
 
             situation = request.form['situation']
@@ -1086,7 +1087,7 @@ def new_emotional_report(current_user_id):
             impact = request.form['impact']
             # correction_hint_used не собирается из веб-формы напрямую, будет None
             new_emotional_report_entry = EmotionalReport(user_id=current_user_id, 
-                                                   date=datetime.utcnow().date(), # Используем UTC дату
+                                                   date=report_date_obj, # Используем дату из карусели
                                                    situation=situation, thought=thought, feelings=feelings,
                                                    correction=correction,
                                                    new_feelings=new_feelings,
