@@ -6,8 +6,8 @@ import time # Для time.sleep
 import markdown # Для обработки markdown
 import json # Для работы с JSON для main_goals и task_checkin_data
 import requests # Для HTTP-запросов к VK API 
-from functools import wraps
-from datetime import datetime, date, timedelta
+from functools import wraps # Добавлен импорт timezone
+from datetime import datetime, date, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response # Добавлен make_response
 from sqlalchemy import desc # desc для сортировки
 # Импортируем SessionLocal, engine и get_db из models.py
