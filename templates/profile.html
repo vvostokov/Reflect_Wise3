@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block title %}Мой профиль - Reflect Wise{% endblock %}
+
+{% block content %}
+<div class="container card shadow-sm p-4">
+    <h1><i class="fas fa-user-circle"></i> Мой профиль</h1>
+    <p class="lead">Эта страница находится в разработке.</p>
+    <p>Ваш User ID: {{ user_id }}</p>
+    {# Здесь будет информация о пользователе и настройки #}
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-3"><i class="fas fa-arrow-left"></i> На главную</a>
+</div>
+{% endblock %}

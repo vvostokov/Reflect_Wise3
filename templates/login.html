@@ -1,20 +1,22 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вход через Telegram</title>
+{% extends "base.html" %}
+
+{% block title %}Вход - Reflect Wise{% endblock %}
+
+{% block head_extra %}
     <style>
-        body {
+        /* Эти стили специфичны для страницы входа, поэтому оставляем их здесь */
+        html, body { height: 100%; margin: 0; } /* Ensure html and body take full height */
+        body.login-page-body { /* Add a specific class to body for login page */
             font-family: sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background-color: #f0f0f0;
+            background-color: #f8f9fa; /* Светлый фон Bootstrap (bg-light) */
+            padding-top: 0; /* Override base.html padding for full page centering */
         }
         .login-container {
-            background-color: #fff;
+            background-color: #fff; /* Белый фон для контейнера входа */
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -22,56 +24,21 @@
         }
         h1 {
             margin-bottom: 20px;
-            color: #333;
-        }
-        /* Стили для флеш-сообщений Flask */
-        .flash-messages {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-        }
-        .flash-messages li {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            text-align: left;
-        }
-        .flash-messages .success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        .flash-messages .info {
-            background-color: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-        .flash-messages .warning {
-            background-color: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeeba;
-        }
-        .flash-messages .danger {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
+            color: #343a40; /* Темно-серый текст Bootstrap */
         }
     </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>Вход в Reflect Wise</h1>
+{% endblock %}
 
-        {# Отображение флеш-сообщений из Flask #}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class="flash-messages">
-                {% for category, message in messages %}
-                    <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
+{% block content %}
+ {# Navbar и footer из base.html будут здесь. Для страницы входа это может быть не идеально.
+    Можно создать отдельный base_minimal.html для страниц типа login, или усложнить base.html,
+    чтобы он мог скрывать navbar/footer по условию. Пока оставляем так. #}
+    <div class="login-container">
+        {# Добавляем класс login-page-body к body только для этой страницы #}
+        <script>
+            document.body.classList.add('login-page-body');
+        </script>
+        <h1>Вход в Reflect Wise</h1>
 
         {# Вставляем виджет входа через Telegram #}
         {# 'bot_username' - замените на имя пользователя вашего бота (например, MyReflectWiseBot) #}
@@ -81,6 +48,9 @@
         data-size="large"
         data-auth-url="{{ url_for('telegram_callback', _external=True) }}"
         data-request-access="write"></script>
+        
+        <hr>
+        <!-- Кнопка входа через VK -->
+        <a href="{{ url_for('login_vk') }}" class="btn btn-primary btn-lg mt-3" style="background-color: #4a76a8; border-color: #4a76a8;">Войти через ВКонтакте</a>
     </div>
-</body>
-</html>
+{% endblock %}

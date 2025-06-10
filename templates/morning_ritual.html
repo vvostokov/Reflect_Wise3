@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Утренний ритуал - Reflect Wise{% endblock %}
+
+{% block head_extra %}
+    {# Стили, специфичные для этой страницы, адаптированные для светлой темы #}
+    <style>
+        /* .container стилизуется через base.html и Bootstrap классы */
+        h1, h2, h4 { color: #007bff; /* Стандартный синий Bootstrap */ text-align: center; margin-bottom: 20px; }
+        h4 { text-align: left; font-size: 1.2rem; margin-top: 20px; }
+        .logo-placeholder { /* Замените на ваш реальный логотип, если он есть */
+            display: block; margin: 0 auto 20px auto; width: 60px; height: 60px; 
+            background-color: #007bff; /* Пример цвета */
+            border-radius: 50%;
+            line-height: 60px; text-align: center; color: white; font-weight: bold;
+        }
+        /* .btn-primary стилизуется Bootstrap */
+        .back-link { display: block; margin-top: 20px; text-align: center; color: #007bff; font-weight: bold; }
+        .back-link:hover { text-decoration: underline; }
+        .date-carousel { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .date-carousel-item { 
+            padding: 8px 12px; margin: 5px; border: 1px solid #dee2e6; /* Bootstrap default border color */ 
+            border-radius: 5px; cursor: pointer; background-color: #f8f9fa; /* Bootstrap bg-light */ 
+            color: #212529; /* Bootstrap default text color */ text-decoration: none; font-size: 0.9em; 
+        }
+        .date-carousel-item:hover { background-color: #e9ecef; /* Bootstrap slightly darker light */ color: #000; }
+        .date-carousel-item.selected { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: bold; }
+        .task-list-item { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 8px 12px; border-radius: 5px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .task-list-item .form-check-label { color: #212529; }
+        .manual-task-input { margin-bottom: 10px; }
+        .ritual-section { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 5px; background-color: #f9f9f9; }
+        .ritual-part-display { white-space: pre-wrap; background-color: #fff; padding: 10px; border-radius: 4px; border: 1px solid #eee; margin-top:10px; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container card shadow-sm"> {# Используем Bootstrap классы для контейнера и тени #}
+        <div class="text-center mb-4">
+            <div class="logo-placeholder">RW</div>
+            <h1>Утренний Ритуал</h1>
+        </div>
+        
+        {# --- Секция для отображения и генерации Ритуала (Часть 1 - ДО ПЛАНИРОВАНИЯ) --- #}
+        <div class="ritual-section">
+            <h4><i class="fas fa-sun mr-2"></i>Ритуал: Пробуждение и Подготовка</h4>
+            <div id="ritualPart1Display" class="ritual-part-display">
+                {% if plan and plan.ritual_part1_raw %}
+                    {{ plan.ritual_part1_raw }}
+                {% else %}
+                    <p class="text-muted">Здесь будет отображаться первая часть вашего утреннего ритуала (до планирования).</p>
+                    <p class="text-muted small">Например: "Пробуждение – сразу встать, без "еще 5 минут". Стакан воды – чтобы запустить метаболизм. Короткая разминка/дыхание – 5-10 минут (йога, суставная гимнастика, Wim Hof)."</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" id="ritualPreferencesForm" class="mt-3">
+            <div class="form-group">
+                <div class="date-carousel">
+                    {% for date_option in carousel_dates %}
+                        <a href="{{ url_for('morning_ritual_page', date=date_option.iso_value) }}"
+                           class="date-carousel-item {% if date_option.is_selected %}selected{% endif %}"
+                           data-date-iso="{{ date_option.iso_value }}">
+                            {{ date_option.display_text }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="selected_date" id="selected_date_hidden" value="{{ selected_date_iso }}">
+            </div>
+            {# --- Секция для ввода предпочтений и сохранения --- #}
+            <div class="ritual-section mt-3">
+                <h4><i class="fas fa-sliders-h mr-2"></i>Настройте ваш ритуал</h4>
+                <div class="form-group">
+                    <label for="ritualPreferences">Ваши предпочтения и ограничения для ритуала:</label>
+                    <textarea class="form-control" id="ritualPreferences" name="ritual_preferences" rows="3" placeholder="Сколько доступно времени? Что важнее всего: быстрый заряд энергии, спокойное начало дня или подготовка тела (спорт/гигиена)? Если что-то не устраивает в текущем ритуале, напиши об этом.">{{ plan.ritual_user_preferences if plan else "" }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save mr-1"></i>Сохранить Предпочтения</button>
+            </div>
+        </form>
+
+        {# --- Секция для отображения и генерации Ритуала (Часть 2 - ПОСЛЕ ПЛАНИРОВАНИЯ) --- #}
+        <div class="ritual-section mt-4">
+            <h4><i class="fas fa-rocket mr-2"></i>Ритуал: Завершение и Заряд Энергией</h4>
+            <div id="ritualPart2Display" class="ritual-part-display">
+                {% if plan and plan.ritual_part2_raw %}
+                    {{ plan.ritual_part2_raw }}
+                {% else %}
+                    <p class="text-muted">Здесь будет отображаться вторая часть вашего утреннего ритуала (после планирования).</p>
+                    <p class="text-muted small">Например: "Здоровый завтрак – в зависимости от предпочтений. Планирование дня – расставить приоритеты (уже сделано выше!). Зарядка энергией – то, что тебя вдохновляет (музыка, танцы, аффирмации)."</p>
+                {% endif %}
+            </div>
+        </div>
+
+        {# --- Секция для кнопки генерации нового ритуала (работает через JS) --- #}
+        <div class="ritual-section mt-4">
+            <h4><i class="fas fa-magic mr-2"></i>Сформировать/Обновить Утренний Ритуал с AI</h4>
+            <p class="text-muted small">Нажмите кнопку ниже, чтобы AI сгенерировал для вас персональный ритуал на основе ваших предпочтений (указанных выше).</p>
+            <button type="button" id="generateRitualBtn" class="btn btn-info"><i class="fas fa-cogs mr-1"></i>Сгенерировать Ритуал</button>
+            <div id="ritualGenerationStatus" class="mt-2 small"></div>
+        </div>
+
+        <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        // JavaScript для генерации утреннего ритуала
+        const generateRitualBtn = document.getElementById('generateRitualBtn');
+        if (generateRitualBtn) {
+            generateRitualBtn.addEventListener('click', function() {
+                const preferences = document.getElementById('ritualPreferences').value;
+                const planDate = document.getElementById('selected_date_hidden').value;
+                const statusDiv = document.getElementById('ritualGenerationStatus');
+                
+                statusDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Генерирую ритуал...';
+                generateRitualBtn.disabled = true;
+
+                fetch("{{ url_for('generate_morning_ritual_ai') }}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+                    },
+                    body: JSON.stringify({
+                        date: planDate,
+                        preferences: preferences
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.ritual_part1 && data.ritual_part2) {
+                        document.getElementById('ritualPart1Display').innerText = data.ritual_part1;
+                        document.getElementById('ritualPart2Display').innerText = data.ritual_part2;
+                        showFlash('Утренний ритуал успешно сгенерирован и сохранен!', 'success');
+                        statusDiv.innerHTML = '<i class="fas fa-check-circle text-success"></i> Ритуал обновлен!';
+                    } else {
+                        showFlash(data.error || 'Не удалось сгенерировать ритуал.', 'danger');
+                        statusDiv.innerHTML = `<i class="fas fa-exclamation-circle text-danger"></i> ${data.error || 'Ошибка генерации'}`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка генерации ритуала:', error);
+                    showFlash('Произошла сетевая ошибка при генерации ритуала.', 'danger');
+                    statusDiv.innerHTML = '<i class="fas fa-exclamation-triangle text-danger"></i> Сетевая ошибка.';
+                })
+                .finally(() => {
+                    generateRitualBtn.disabled = false;
+                     setTimeout(() => { statusDiv.innerHTML = ''; }, 5000);
+                });
+            });
+        }
+
+    </script>
+{% endblock %}

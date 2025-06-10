@@ -1,0 +1,419 @@
+{% extends "base.html" %}
+
+{% block title %}Трекер Привычек - Reflect Wise{% endblock %}
+
+{% block head_extra %}
+    <style>
+        .habit-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .habit-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .habit-streak {
+            font-size: 0.9em;
+            color: #6c757d; /* text-muted */
+        }
+        .habit-progress {
+            height: 10px;
+        }
+        .formed-habit-item {
+            background-color: #e9f5e9; /* Light green background for formed habits */
+            border-left: 5px solid #28a745; /* Green border for formed habits */
+        }
+        .date-carousel { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .date-carousel-item { 
+            padding: 8px 12px; margin: 5px; border: 1px solid #dee2e6; 
+            border-radius: 5px; cursor: pointer; background-color: #f8f9fa; 
+            color: #212529; text-decoration: none; font-size: 0.9em; 
+        }
+        .date-carousel-item:hover { background-color: #e9ecef; color: #000; }
+        .date-carousel-item.selected { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: bold; }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="container card shadow-sm p-4" 
+    data-create-habit-url="{{ url_for('create_habit') }}"
+    data-update-habit-entry-url-template="{{ url_for('update_daily_habit_entry', entry_id=0) }}"
+    data-delete-habit-url-template="{{ url_for('delete_habit', habit_id=0) }}"
+    data-csrf-token="{{ csrf_token() if csrf_token else '' }}">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1><i class="fas fa-calendar-check"></i> Трекер Привычек</h1>
+        <button class="btn btn-success" data-toggle="modal" data-target="#addHabitModal"><i class="fas fa-plus"></i> Добавить привычку</button>
+    </div>
+
+    <div class="form-group">
+        <label for="selected_date_display">Дата для отслеживания:</label>
+        <div class="date-carousel">
+            {% for date_option in carousel_dates %}
+                <a href="{{ url_for('habits_page', date=date_option.iso_value) }}" 
+                   class="date-carousel-item {% if date_option.is_selected %}selected{% endif %}"
+                   data-date-iso="{{ date_option.iso_value }}">
+                    {{ date_option.display_text }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    <hr>
+
+    <h4><i class="fas fa-tasks"></i> Активные привычки на {{ selected_date_obj.strftime('%d %B %Y') }}</h4>
+    {% if daily_habits %}
+        <div class="row">
+            {% for daily_habit in daily_habits %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card habit-card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title">{{ daily_habit.habit_name }}</h5>
+                        {% if daily_habit.habit_description %}
+                            <p class="card-text text-muted small">{{ daily_habit.habit_description }}</p>
+                        {% endif %}
+                        <div class="mt-auto">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input daily-habit-checkbox" type="checkbox" 
+                                       value="{{ daily_habit.entry_id }}" 
+                                       id="habitCheck_{{ daily_habit.entry_id }}" 
+                                       data-habit-id="{{ daily_habit.habit_id }}"
+                                       {% if daily_habit.is_completed %}checked{% endif %}>
+                                <label class="form-check-label" for="habitCheck_{{ daily_habit.entry_id }}">
+                                    Отметить как выполненную
+                                </label>
+                            </div>
+                            <textarea class="form-control form-control-sm habit-notes mb-2" rows="1" 
+                                      placeholder="Заметки (опционально)" 
+                                      data-entry-id="{{ daily_habit.entry_id }}">{{ daily_habit.notes if daily_habit.notes else '' }}</textarea>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="habit-streak">Стрик: <strong id="streak-{{ daily_habit.habit_id }}">{{ daily_habit.streak }}</strong> / {{ daily_habit.target }} дней</span>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-primary edit-habit-btn mr-1" 
+                                            data-habit-id="{{ daily_habit.habit_id }}" 
+                                            data-habit-name="{{ daily_habit.habit_name }}"
+                                            data-habit-description="{{ daily_habit.habit_description if daily_habit.habit_description is not none else '' }}"
+                                            data-habit-target-days="{{ daily_habit.target }}"
+                                            data-habit-frequency-type="{{ daily_habit.frequency_type }}"
+                                            data-habit-days-of-week="{{ daily_habit.days_of_week|tojson|safe if daily_habit.days_of_week else '[]' }}"
+                                            data-habit-days-of-month="{{ daily_habit.days_of_month|tojson|safe if daily_habit.days_of_month else '[]' }}">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-habit-btn" data-habit-id="{{ daily_habit.habit_id }}" data-habit-name="{{ daily_habit.habit_name }}" title="Удалить привычку">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="progress habit-progress">
+                                <div class="progress-bar bg-success" role="progressbar" 
+                                     style="width: {{ (daily_habit.streak / daily_habit.target * 100)|round }}%;" 
+                                     aria-valuenow="{{ daily_habit.streak }}" aria-valuemin="0" aria-valuemax="{{ daily_habit.target }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted">У вас пока нет активных привычек. Добавьте новую, чтобы начать!</p>
+    {% endif %}
+
+    <hr class="my-4">
+
+    <h4><i class="fas fa-medal"></i> Сформированные привычки</h4>
+    {% if formed_habits %}
+        <ul class="list-group">
+            {% for habit in formed_habits %}
+            <li class="list-group-item formed-habit-item d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>{{ habit.name }}</strong>
+                    <small class="text-muted d-block">Сформирована {{ habit.updated_at.strftime('%d %b %Y') }}, стрик: {{ habit.formation_streak }} дней.</small>
+                </div> {# Кнопка удаления для сформированных привычек #}
+                <button class="btn btn-sm btn-outline-danger delete-habit-btn" data-habit-id="{{ habit.id }}" data-habit-name="{{ habit.name }}">
+                    <i class="fas fa-trash-alt"></i> Удалить
+                </button>
+            </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="text-muted">У вас пока нет сформированных привычек.</p>
+    {% endif %}
+</div>
+
+<!-- Модальное окно для добавления привычки -->
+<div class="modal fade" id="addHabitModal" tabindex="-1" aria-labelledby="addHabitModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addHabitModalLabel">Добавить новую привычку</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addHabitForm">
+                    <div class="form-group">
+                        <label for="habitName">Название привычки</label>
+                        <input type="text" class="form-control" id="habitName" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="habitDescription">Описание (опционально)</label>
+                        <textarea class="form-control" id="habitDescription" name="description" rows="2"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="habitTargetDays">Цель формирования (дней)</label>
+                        <input type="number" class="form-control" id="habitTargetDays" name="formation_target_days" value="{{ default_formation_days }}" min="7" max="365" required>
+                        <small class="form-text text-muted">Рекомендуется от 14 до 66 дней.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="habitFrequencyType">Частота</label>
+                        <select class="form-control" id="habitFrequencyType" name="frequency_type">
+                            <option value="DAILY" selected>Ежедневно</option>
+                            <option value="WEEKLY">По дням недели</option>
+                            <option value="MONTHLY">По числам месяца</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="daysOfWeekGroup" style="display: none;">
+                        <label>Дни недели (для еженедельной)</label><br>
+                        {% set week_days = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"] %}
+                        {% for i in range(7) %}
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="checkbox" name="days_of_week" value="{{ i }}" id="dow_{{ i }}">
+                            <label class="form-check-label" for="dow_{{ i }}">{{ week_days[i] }}</label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group" id="daysOfMonthGroup" style="display: none;">
+                        <label for="habitDaysOfMonth">Числа месяца (для ежемесячной, через запятую)</label>
+                        <input type="text" class="form-control" id="habitDaysOfMonth" name="days_of_month_str" placeholder="Например: 1, 15, 30">
+                        <small class="form-text text-muted">Введите числа от 1 до 31.</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="saveNewHabitBtn">Сохранить привычку</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для редактирования привычки -->
+    <div class="modal fade" id="editHabitModal" tabindex="-1" aria-labelledby="editHabitModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editHabitModalLabel">Редактировать привычку</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="editHabitForm">
+                        <input type="hidden" id="editHabitId" name="id">
+                        <div class="form-group">
+                            <label for="editHabitName">Название привычки</label>
+                            <input type="text" class="form-control" id="editHabitName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editHabitDescription">Описание (опционально)</label>
+                            <textarea class="form-control" id="editHabitDescription" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="editHabitTargetDays">Цель формирования (дней)</label>
+                            <input type="number" class="form-control" id="editHabitTargetDays" name="formation_target_days" min="7" max="365" required>
+                            <small class="form-text text-muted">Рекомендуется от 14 до 66 дней.</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="editHabitFrequencyType">Частота</label>
+                            <select class="form-control" id="editHabitFrequencyType" name="frequency_type">
+                                <option value="DAILY">Ежедневно</option>
+                                <option value="WEEKLY">По дням недели</option>
+                                <option value="MONTHLY">По числам месяца</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="editDaysOfWeekGroup" style="display: none;">
+                            <label>Дни недели (для еженедельной)</label><br>
+                            {% set week_days_edit = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"] %}
+                            {% for i in range(7) %}
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" name="edit_days_of_week" value="{{ i }}" id="edit_dow_{{ i }}">
+                                <label class="form-check-label" for="edit_dow_{{ i }}">{{ week_days_edit[i] }}</label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group" id="editDaysOfMonthGroup" style="display: none;">
+                            <label for="editHabitDaysOfMonth">Числа месяца (для ежемесячной, через запятую)</label>
+                            <input type="text" class="form-control" id="editHabitDaysOfMonth" name="edit_days_of_month_str" placeholder="Например: 1, 15, 30">
+                            <small class="form-text text-muted">Введите числа от 1 до 31.</small>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-primary" id="saveEditedHabitBtn">Сохранить изменения</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/habits.js') }}"></script>
+
+<script>
+    // Дополнительный JS для редактирования, если habits.js не используется или для быстрого добавления
+    // и для управления видимостью полей частоты
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- Управление видимостью полей для МОДАЛЬНОГО ОКНА ДОБАВЛЕНИЯ ---
+        const frequencyTypeSelect = document.getElementById('habitFrequencyType');
+        const daysOfWeekGroup = document.getElementById('daysOfWeekGroup');
+        const daysOfMonthGroup = document.getElementById('daysOfMonthGroup');
+
+        if (frequencyTypeSelect) {
+            frequencyTypeSelect.addEventListener('change', function() {
+                daysOfWeekGroup.style.display = this.value === 'WEEKLY' ? 'block' : 'none';
+                daysOfMonthGroup.style.display = this.value === 'MONTHLY' ? 'block' : 'none';
+            });
+        }
+        // Инициализация при загрузке (на случай, если значение уже установлено)
+        if (frequencyTypeSelect && daysOfWeekGroup && daysOfMonthGroup) {
+             daysOfWeekGroup.style.display = frequencyTypeSelect.value === 'WEEKLY' ? 'block' : 'none';
+             daysOfMonthGroup.style.display = frequencyTypeSelect.value === 'MONTHLY' ? 'block' : 'none';
+        }
+
+        // --- Управление видимостью полей для МОДАЛЬНОГО ОКНА РЕДАКТИРОВАНИЯ ---
+        const editFrequencyTypeSelect = document.getElementById('editHabitFrequencyType');
+        const editDaysOfWeekGroup = document.getElementById('editDaysOfWeekGroup');
+        const editDaysOfMonthGroup = document.getElementById('editDaysOfMonthGroup');
+
+        if (editFrequencyTypeSelect) {
+            editFrequencyTypeSelect.addEventListener('change', function() {
+                editDaysOfWeekGroup.style.display = this.value === 'WEEKLY' ? 'block' : 'none';
+                editDaysOfMonthGroup.style.display = this.value === 'MONTHLY' ? 'block' : 'none';
+            });
+        }
+
+        // --- Логика для редактирования привычки ---
+        const editHabitModal = $('#editHabitModal');
+        const editHabitForm = document.getElementById('editHabitForm');
+        const editHabitIdInput = document.getElementById('editHabitId');
+        const editHabitNameInput = document.getElementById('editHabitName');
+        const editHabitDescriptionInput = document.getElementById('editHabitDescription');
+        const editHabitTargetDaysInput = document.getElementById('editHabitTargetDays');
+        // Поля для редактирования частоты
+        const editHabitFrequencyTypeInput = document.getElementById('editHabitFrequencyType');
+        const editHabitDaysOfWeekCheckboxes = document.querySelectorAll('input[name="edit_days_of_week"]');
+        const editHabitDaysOfMonthInput = document.getElementById('editHabitDaysOfMonth');
+
+
+
+        document.querySelectorAll('.edit-habit-btn').forEach(button => {
+            button.addEventListener('click', function () {
+                const habitId = this.dataset.habitId;
+                const habitName = this.dataset.habitName;
+                const habitDescription = this.dataset.habitDescription;
+                const habitTargetDays = this.dataset.habitTargetDays;
+                const habitFrequencyType = this.dataset.habitFrequencyType;
+                const habitDaysOfWeek = JSON.parse(this.dataset.habitDaysOfWeek || '[]');
+                const habitDaysOfMonth = JSON.parse(this.dataset.habitDaysOfMonth || '[]');
+
+                editHabitIdInput.value = habitId;
+                editHabitNameInput.value = habitName;
+                editHabitDescriptionInput.value = habitDescription;
+                editHabitTargetDaysInput.value = habitTargetDays;
+                editHabitFrequencyTypeInput.value = habitFrequencyType;
+
+                // Управление видимостью и значениями для дней недели/месяца
+                editDaysOfWeekGroup.style.display = habitFrequencyType === 'WEEKLY' ? 'block' : 'none';
+                editDaysOfMonthGroup.style.display = habitFrequencyType === 'MONTHLY' ? 'block' : 'none';
+
+                editHabitDaysOfWeekCheckboxes.forEach(checkbox => {
+                    checkbox.checked = habitDaysOfWeek.includes(parseInt(checkbox.value));
+                });
+                editHabitDaysOfMonthInput.value = habitDaysOfMonth.join(', ');
+
+                // Триггерим событие change для select, чтобы обновить видимость групп
+                // Это нужно, если модальное окно открывается с уже выбранным типом частоты
+                if (editFrequencyTypeSelect) {
+                    // Ensure the select is updated before dispatching change
+                    // editFrequencyTypeSelect.value = habitFrequencyType; // This line might be redundant if already set
+                    const event = new Event('change');
+                    editFrequencyTypeSelect.dispatchEvent(event);
+                }
+                
+                editHabitModal.modal('show');
+            });
+        });
+
+        const saveEditedHabitBtn = document.getElementById('saveEditedHabitBtn');
+        if (saveEditedHabitBtn) {
+            saveEditedHabitBtn.addEventListener('click', function () {
+                const habitId = editHabitIdInput.value;
+                const name = editHabitNameInput.value;
+                const description = editHabitDescriptionInput.value;
+                const formation_target_days = editHabitTargetDaysInput.value;
+                const frequency_type = editHabitFrequencyTypeInput.value;
+                
+                let days_of_week = null;
+                if (frequency_type === 'WEEKLY') {
+                    days_of_week = Array.from(editHabitDaysOfWeekCheckboxes)
+                                        .filter(cb => cb.checked)
+                                        .map(cb => parseInt(cb.value));
+                }
+
+                let days_of_month = null;
+                if (frequency_type === 'MONTHLY') {
+                    days_of_month = editHabitDaysOfMonthInput.value.split(',')
+                                        .map(s => parseInt(s.trim())).filter(n => !isNaN(n) && n >= 1 && n <= 31);
+                }
+
+                if (!name.trim()) {
+                    alert('Название привычки не может быть пустым.');
+                    return;
+                }
+                if (!formation_target_days || isNaN(parseInt(formation_target_days)) || parseInt(formation_target_days) < 7 || parseInt(formation_target_days) > 365) {
+                    alert('Цель формирования должна быть числом от 7 до 365.');
+                    return;
+                }
+                if (frequency_type === 'WEEKLY' && (!days_of_week || days_of_week.length === 0)) {
+                    alert('Для еженедельной привычки выберите хотя бы один день недели.');
+                    return;
+                }
+                if (frequency_type === 'MONTHLY' && (!days_of_month || days_of_month.length === 0)) {
+                    alert('Для ежемесячной привычки укажите хотя бы один день месяца (числа от 1 до 31 через запятую).');
+                    return;
+                }
+
+                const habitUpdateUrl = `{{ url_for('update_habit', habit_id=0) }}`.replace('0', habitId);
+                const csrfToken = document.querySelector('.container.card').dataset.csrfToken;
+
+                fetch(habitUpdateUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ name, description, formation_target_days, frequency_type, days_of_week, days_of_month })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.habit) {
+                        editHabitModal.modal('hide');
+                        // Обновляем UI или перезагружаем страницу
+                        // Для простоты, пока перезагрузим.
+                        // В идеале - обновить DOM конкретного элемента.
+                        showFlash(data.message || 'Привычка успешно обновлена!', 'success');
+                        setTimeout(() => window.location.reload(), 1000);
+                    } else {
+                        alert(data.error || 'Не удалось обновить привычку.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка обновления привычки:', error);
+                    alert('Произошла ошибка при обновлении привычки.');
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends "base.html" %}
+
+{% block title %}Задачи Дня - Reflect Wise{% endblock %}
+{% block head_extra %}
+<style>
+    .task-item {
+        /* Компактные стили для элемента задачи */
+        padding: 0.6rem 0.8rem; /* Уменьшенные отступы */
+        margin-bottom: 0.5rem; /* Уменьшенный нижний отступ */
+        border: 1px solid #e3e6f0;
+        border-radius: .35rem;
+        background-color: #fff;
+        transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .task-item:hover {
+        box-shadow: 0 .15rem 1.75rem 0 rgba(58,59,69,.15);
+    }
+    .task-item.status-done {
+        background-color: #e6f9f0; /* Светло-зеленый фон для выполненных */
+        border-left: 4px solid #1cc88a; /* Зеленая полоса слева */
+    }
+    .task-item.is-excluded {
+        opacity: 0.65;
+        background-color: #f8f9fc;
+    }
+    .task-item.is-excluded .task-text {
+        text-decoration: line-through;
+    }
+    /* Убраны специфичные border-left для источников, т.к. иконки будут их заменять */
+
+    .task-content {
+        display: flex;
+        align-items: center; /* Выравнивание по центру по вертикали */
+    }
+    .task-checkbox-area {
+        margin-right: 0.75rem;
+    }
+    .task-details-area {
+        flex-grow: 1;
+    }
+    .task-text {
+        font-weight: 500;
+        margin-bottom: 0.1rem; /* Небольшой отступ снизу у текста задачи */
+        font-size: 0.95rem;
+    }
+    .task-meta-data { /* Новый класс для обертки метаданных */
+        display: flex;
+        flex-wrap: wrap; /* Позволяет переноситься на новую строку, если не помещается */
+        align-items: center;
+        font-size: 0.8rem; /* Размер иконок и текста метаданных */
+        color: #858796; /* Цвет для иконок/метаданных */
+    }
+    .task-meta-data > span { /* Отступ для каждого элемента метаданных */
+        margin-right: 0.5rem;
+    }
+
+    .task-actions button { /* Убрали select из этого правила */
+        margin-left: 8px;
+        font-size: 0.85em;
+    }
+    .comment-area {
+        margin-top: 8px;
+    }
+    .task-description-text { /* Новый стиль для прямого отображения описания */
+        font-size: 0.8em;
+        color: #5a5c69;
+        margin-top: 0.25rem;
+        margin-bottom: 0;
+    }
+    .task-comment-details summary { /* Стиль для спойлера комментария */
+        font-size: 0.75em; /* Меньший шрифт для "Описание" */
+        color: #858796;
+        cursor: pointer;
+        margin-top: 0.2rem;
+    }
+    /* Стили для кнопок статуса */
+    .status-btn-group .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+        margin-right: 0.25rem; /* Небольшой отступ между кнопками статуса */
+    }
+    .status-btn-group .btn.active {
+        /* Стили для активной кнопки статуса, если нужны (Bootstrap уже может их применять) */
+        /* Например, box-shadow: inset 0 1px 3px rgba(0,0,0,.2); */
+    }
+    /* Стили для карусели дат и кнопки "Назад" остаются без изменений */
+    .date-carousel { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; flex-wrap: wrap; } .date-carousel-item { padding: 8px 12px; margin: 5px; border: 1px solid #dee2e6; border-radius: 5px; cursor: pointer; background-color: #f8f9fa; color: #212529; text-decoration: none; font-size: 0.9em; } .date-carousel-item:hover { background-color: #e9ecef; color: #000; } .date-carousel-item.selected { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: bold; }
+    .back-link { display: block; margin-top: 20px; text-align: center; color: #007bff; font-weight: bold; }
+    .back-link:hover { text-decoration: underline; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container card shadow-sm p-4">
+    <div class="text-center mb-4">
+        <h1><i class="fas fa-check-double mr-2"></i>Задачи на {{ selected_date_iso }}</h1>
+    </div>
+
+    <!-- Карусель дат -->
+    <div class="form-group">
+        <label for="selected_date_display">Выберите дату:</label>
+        <div class="date-carousel">
+            {% for date_option in carousel_dates %}
+            <a href="{{ url_for('daily_tasks_manager', date=date_option.iso_value) }}"
+               class="date-carousel-item {% if date_option.is_selected %}selected{% endif %}">
+                {{ date_option.display_text }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <hr>
+
+    <form method="POST" id="dailyTasksForm">
+        <input type="hidden" name="tasks_data" id="tasks_data_hidden">
+        
+        <div id="tasksListContainer">
+            <!-- Задачи будут рендериться здесь с помощью JS -->
+        </div>
+
+        <hr>
+        <h4>Добавить задачу вручную</h4>
+        <div class="input-group mb-3">
+            <input type="text" id="manualTaskText" class="form-control" placeholder="Текст новой задачи">
+            <div class="input-group-append">
+                <button class="btn btn-outline-primary" type="button" id="addManualTaskBtn"><i class="fas fa-plus"></i> Добавить</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block mt-4"><i class="fas fa-save mr-2"></i>Сохранить задачи на день</button>
+    </form>
+    <a href="{{ url_for('index') }}" class="back-link mt-3"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tasksListContainer = document.getElementById('tasksListContainer');
+    const addManualTaskBtn = document.getElementById('addManualTaskBtn');
+    const manualTaskTextInput = document.getElementById('manualTaskText');
+    const dailyTasksForm = document.getElementById('dailyTasksForm');
+    const tasksDataHiddenInput = document.getElementById('tasks_data_hidden');
+
+    // Пытаемся декодировать tasks из Jinja. Если ошибка, currentTasks будет пустым массивом.
+    let currentTasks = [];
+    try {
+        const rawTasksData = '{{ tasks | tojson | safe }}';
+        currentTasks = JSON.parse(decodeHtmlEntities(rawTasksData));
+        if (!Array.isArray(currentTasks)) {
+            console.warn("Данные задач из Jinja не являются массивом, инициализируем пустым.");
+            currentTasks = [];
+        }
+    } catch (e) {
+        console.error("Ошибка парсинга задач из Jinja:", e);
+        currentTasks = []; // Гарантируем, что currentTasks - это массив
+    }
+
+
+    function decodeHtmlEntities(text) {
+        if (typeof text !== 'string') return '';
+        var textArea = document.createElement('textarea');
+        textArea.innerHTML = text;
+        return textArea.value;
+    }
+
+    function escapeHtml(unsafe) {
+        if (typeof unsafe !== 'string') return '';
+        return unsafe
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
+    }
+
+    function renderTasks() {
+        tasksListContainer.innerHTML = ''; // Очищаем перед рендером
+        if (currentTasks.length === 0) {
+            tasksListContainer.innerHTML = '<p class="text-muted text-center">Задач на сегодня пока нет. Добавьте вручную или обновите, если ожидаете автоматического предложения.</p>';
+            return;
+        }
+        currentTasks.forEach((task, index) => {
+            const taskDiv = document.createElement('div');
+            taskDiv.className = `task-item task-source-${task.source || 'manual'} ${task.status === 'done' ? 'status-done' : ''} ${task.is_excluded ? 'is-excluded' : ''}`;
+            taskDiv.dataset.taskId = task.id || `temp_${index}`;
+            taskDiv.dataset.source = task.source || 'manual';
+            taskDiv.dataset.sourceId = task.source_id || '';
+            taskDiv.dataset.index = index; // Для легкого доступа к элементу в currentTasks
+
+            let metaDataHtml = '<div class="task-meta-data">'; // Обертка для метаданных
+            // Иконка источника
+            metaDataHtml += `<span>${getSourceIconHtml(task.source)}</span>`;
+
+            // Иконка приоритета
+            if (task.priority) {
+                metaDataHtml += `<span>${getPriorityIconHtml(task.priority)}</span>`;
+            }
+            // Можно добавить сюда отображение первой сферы, если нужно
+            metaDataHtml += '</div>';
+
+            let sphereBadges = '';
+            if (task.spheres && Array.isArray(task.spheres) && task.spheres.length > 0) {
+                sphereBadges = '<div class="mt-1">';
+                task.spheres.slice(0, 3).forEach(s => { // Показываем до 3 сфер для компактности
+                    sphereBadges += `<span class="badge badge-pill badge-light border mr-1" style="font-size: 0.7em;">${escapeHtml(s)}</span>`;
+                });
+                if (task.spheres.length > 3) sphereBadges += `<span class="badge badge-pill badge-light border" style="font-size: 0.7em;">+${task.spheres.length - 3}</span>`;
+                sphereBadges += '</div>';
+            }
+
+            let descriptionHtml = '';
+            if (task.description) {
+                // Описание теперь отображается напрямую, без спойлера
+                descriptionHtml = `<p class="task-description-text">${escapeHtml(task.description)}</p>`;
+            }
+
+            taskDiv.innerHTML = `
+                <div class="task-content">
+                    <div class="task-checkbox-area">
+                        <!-- Чекбокс заменен на select -->
+                    </div>
+                    <div class="task-details-area">
+                        <div class="task-text">${escapeHtml(task.text)}</div>
+                        ${metaDataHtml}
+                        ${sphereBadges}
+                        ${descriptionHtml}
+                    </div>
+                    <div class="task-actions ml-auto d-flex align-items-center">
+                        <div class="status-btn-group btn-group btn-group-toggle mr-2" data-toggle="buttons">
+                            <button class="btn btn-sm btn-outline-danger status-btn ${task.status === 'todo' ? 'active' : ''}" data-status="todo" title="К выполнению">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-warning status-btn ${task.status === 'partial' ? 'active' : ''}" data-status="partial" title="Частично выполнено">
+                                <i class="fas fa-adjust"></i> <!-- или fa-star-half-alt -->
+                            </button>
+                            <button class="btn btn-sm btn-outline-success status-btn ${task.status === 'done' ? 'active' : ''}" data-status="done" title="Выполнено">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary toggle-exclude-btn ml-1" title="${task.is_excluded ? 'Вернуть задачу' : 'Исключить из списка на день'}">
+                            <i class="fas ${task.is_excluded ? 'fa-eye' : 'fa-eye-slash'}"></i>
+                        </button>
+                        ${task.source === 'manual' ? `<button type="button" class="btn btn-sm btn-outline-danger remove-manual-btn" title="Удалить ручную задачу"><i class="fas fa-trash-alt"></i></button>` : ''}
+                    </div>
+                </div>
+                <div class="comment-area mt-1">
+                    <details class="task-comment-details">
+                        <summary>Комментарий</summary>
+                        <div class="mt-1">
+                            <textarea class="form-control form-control-sm task-comment-input" placeholder="Ваш комментарий..." rows="1">${escapeHtml(task.comment || '')}</textarea>
+                        </div>
+                    </details>
+                </div>
+            `;
+            tasksListContainer.appendChild(taskDiv);
+        });
+        attachEventListenersToTasks();
+    }
+    
+    function attachEventListenersToTasks() {
+        document.querySelectorAll('.status-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const taskDiv = this.closest('.task-item');
+                const index = parseInt(taskDiv.dataset.index);
+                const newStatus = this.dataset.status;
+
+                if (currentTasks[index]) {
+                    currentTasks[index].status = newStatus;
+
+                    // Обновляем активную кнопку в группе
+                    this.closest('.status-btn-group').querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    if (newStatus === 'done') taskDiv.classList.add('status-done');
+                    else taskDiv.classList.remove('status-done');
+                    // Можно добавить класс для 'partial', если нужно особое отображение
+                    // if (newStatus === 'partial') taskDiv.classList.add('status-partial'); else taskDiv.classList.remove('status-partial');
+                }
+            });
+        });
+        document.querySelectorAll('.task-comment-input').forEach(textarea => {
+            textarea.addEventListener('input', function() { // 'input' для немедленного обновления
+                const taskDiv = this.closest('.task-item');
+                const index = parseInt(taskDiv.dataset.index);
+                 if (currentTasks[index]) {
+                    currentTasks[index].comment = this.value;
+                }
+            });
+        });
+        document.querySelectorAll('.toggle-exclude-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const taskDiv = this.closest('.task-item');
+                const index = parseInt(taskDiv.dataset.index);
+                if (currentTasks[index]) {
+                    currentTasks[index].is_excluded = !currentTasks[index].is_excluded;
+                    taskDiv.classList.toggle('is-excluded');
+                    this.title = currentTasks[index].is_excluded ? 'Вернуть задачу' : 'Исключить из списка на день';
+                    this.innerHTML = `<i class="fas ${currentTasks[index].is_excluded ? 'fa-eye' : 'fa-eye-slash'}"></i>`;
+                }
+            });
+        });
+        document.querySelectorAll('.remove-manual-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                if (confirm('Вы уверены, что хотите удалить эту ручную задачу?')) {
+                    const taskDiv = this.closest('.task-item');
+                    const index = parseInt(taskDiv.dataset.index);
+                    if (currentTasks[index] && currentTasks[index].source === 'manual') {
+                        currentTasks.splice(index, 1);
+                        renderTasks(); // Перерисовать список
+                    }
+                }
+            });
+        });
+    }
+
+    if (addManualTaskBtn) {
+        addManualTaskBtn.addEventListener('click', function() {
+            const text = manualTaskTextInput.value.trim();
+            if (text) {
+                currentTasks.push({
+                    id: `manual_${new Date().getTime()}_${Math.random().toString(16).slice(2)}`, // Уникальный временный ID
+                    text: text,
+                    source: "manual",
+                    source_id: null, // У ручных задач нет source_id до сохранения
+                    status: "todo",
+                    comment: "",
+                    is_excluded: false,
+                    description: "", // Можно добавить поле для описания ручной задачи
+                    priority: null,
+                    spheres: []
+                });
+                manualTaskTextInput.value = '';
+                renderTasks();
+            } else {
+                alert("Введите текст задачи.");
+            }
+        });
+    }
+
+    if (dailyTasksForm) {
+        dailyTasksForm.addEventListener('submit', function(e) {
+            // Перед отправкой, убедимся, что все данные в currentTasks актуальны
+            // (например, комментарии, статусы - они уже должны быть обновлены по событиям 'input' и 'change')
+            tasksDataHiddenInput.value = JSON.stringify(currentTasks);
+            // Валидация перед отправкой, если нужна
+        });
+    }
+    
+    function getSourceIconHtml(source) {
+        let iconClass = '';
+        let title = '';
+        switch (source) {
+            case 'plan_item': iconClass = 'fas fa-clipboard-list text-primary'; title = 'Стратегический план'; break;
+            case 'planner_manual': iconClass = 'fas fa-calendar-plus text-info'; title = 'Утренний план (ручной ввод)'; break;
+            case 'planner_orphan': iconClass = 'fas fa-calendar-times text-warning'; title = 'Утренний план (исходник утерян)'; break;
+            case 'quest': iconClass = 'fas fa-flag-checkered text-success'; title = 'Квест развития сфер'; break;
+            case 'habit': iconClass = 'fas fa-redo-alt text-secondary'; title = 'Привычка'; break;
+            case 'manual': iconClass = 'fas fa-pencil-alt text-muted'; title = 'Добавлено вручную'; break;
+            default: iconClass = 'fas fa-question-circle text-muted'; title = 'Неизвестный источник';
+        } // Возвращаем только иконку, обертка span будет в metaDataHtml
+        return `<i class="${iconClass}" title="${title}"></i>`;
+    }
+
+    function getPriorityIconHtml(priority) {
+        if (!priority) return '';
+        let iconClass = 'fas fa-circle fa-xs';
+        let title = `Приоритет: ${priority}`;
+        switch (String(priority).toUpperCase()) {
+            case 'HIGH':
+            case 'ВЫСОКИЙ':
+                iconClass += ' text-danger'; break;
+            case 'MEDIUM':
+            case 'СРЕДНИЙ':
+                iconClass += ' text-warning'; break;
+            case 'LOW':
+            case 'НИЗКИЙ':
+                iconClass += ' text-success'; break; // или text-info
+            default:
+                iconClass += ' text-muted';
+                title = `Приоритет: ${priority} (не стандартный)`;
+        }
+        return `<i class="${iconClass}" title="${title}"></i>`;
+    }
+
+    renderTasks(); // Первоначальный рендер
+});
+</script>
+{% endblock %}

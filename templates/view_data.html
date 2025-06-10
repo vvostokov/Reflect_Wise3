@@ -1,86 +1,33 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Данные за {{ view_date }} - Reflect Wise</title>
-    {# Подключаем Bootstrap (Darkly theme) #}
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
-    {# Подключаем Font Awesome для иконок #}
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    {# Подключаем ваш пользовательский CSS (если есть дополнительные стили в static/style.css) #}
-    {# <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}"> #}
+{% extends "base.html" %}
+
+{% block title %}Данные за {{ view_date }} - Reflect Wise{% endblock %}
+
+{% block head_extra %}
+    {# Стили, специфичные для этой страницы, адаптированные для светлой темы #}
     <style>
-        body {
-            font-family: sans-serif;
-            line-height: 1.6;
-            background-color: #222; /* Темный фон для Darkly theme */
-            color: #eee; /* Светлый текст */
-            padding-top: 20px; /* Отступ сверху */
-            padding-bottom: 20px; /* Отступ снизу */
-        }
-        .container {
-            max-width: 960px; /* Увеличиваем максимальную ширину контейнера */
-            margin: auto;
-            background: #333; /* Более темный фон контейнера */
-            padding: 30px; /* Увеличиваем отступы */
-            border-radius: 10px; /* Более скругленные углы */
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3); /* Более выраженная тень */
-        }
-        h1, h2 {
-            color: #00bfff; /* Яркий синий цвет для заголовков */
-            text-align: center; /* Центрируем заголовки */
+        /* .container стилизуется через base.html и Bootstrap классы */
+        h1 {
+            color: #007bff; /* Стандартный синий Bootstrap */
+            text-align: center;
             margin-bottom: 20px;
         }
-        .logo {
-            display: block; /* Делаем блочным элементом */
-            margin: 0 auto 20px auto; /* Центрируем и добавляем нижний отступ */
-            width: 60px; /* Размер логотипа на внутренних страницах */
-            height: 60px; /* Размер логотипа на внутренних страницах */
-            background-color: #007bff; /* Временный фон для логотипа */
-            border-radius: 50%; /* Делаем круглым */
-        }
-         .flash-messages {
-            list-style: none;
-            padding: 0;
-            margin: 20px 0;
-        }
-        .flash-messages li {
-            padding: 10px;
-            margin-bottom: 10px;
-            border-radius: 4px;
-            text-align: left;
-        }
-        .flash-messages .success {
-            background-color: #28a745; /* Зеленый */
-            color: #fff;
-            border: none;
-        }
-        .flash-messages .info {
-            background-color: #17a2b8; /* Голубой */
-            color: #fff;
-            border: none;
-        }
-        .flash-messages .warning {
-            background-color: #ffc107; /* Желтый */
-            color: #212529;
-            border: none;
-        }
-        .flash-messages .danger {
-            background-color: #dc3545; /* Красный */
-            color: #fff;
-            border: none;
+        .logo-placeholder { /* Замените на ваш реальный логотип, если он есть */
+            display: block; margin: 0 auto 20px auto; width: 60px; height: 60px; 
+            background-color: #007bff; /* Пример цвета */
+            border-radius: 50%; 
+            line-height: 60px; text-align: center; color: white; font-weight: bold;
         }
         .data-section {
             margin-bottom: 30px;
             padding: 20px;
-            background-color: #444; /* Темнее фон секции данных */
+            background-color: #f8f9fa; /* Bootstrap bg-light */
             border-radius: 8px;
+            border: 1px solid #dee2e6; /* Bootstrap default border */
         }
         .data-section h3 {
-            color: #00bfff; /* Цвет заголовков секций */
+            color: #007bff; /* Цвет заголовков секций */
             margin-bottom: 15px;
-            border-bottom: 1px solid #555; /* Разделитель */
+            border-bottom: 1px solid #dee2e6; /* Разделитель */
             padding-bottom: 10px;
         }
         .data-item {
@@ -88,42 +35,29 @@
         }
         .data-item strong {
             color: #eee; /* Светлый текст для меток */
-            display: block; /* Метка на новой строке */
             margin-bottom: 5px;
         }
          .data-item p {
-             color: #ccc; /* Цвет текста данных */
+             color: #495057; /* Цвет текста данных (Bootstrap text-muted style) */
              margin: 0;
          }
         .back-link {
             display: block;
             margin-top: 20px;
             text-align: center;
-            color: #00bfff;
+            color: #007bff;
             font-weight: bold;
         }
         .back-link:hover {
             text-decoration: underline;
         }
     </style>
-</head>
-<body>
-    <div class="container">
+{% endblock %}
 
-        {# Отображение флеш-сообщений из Flask #}
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                <ul class="flash-messages">
-                {% for category, message in messages %}
-                    <li class="{{ category }}">{{ message }}</li>
-                {% endfor %}
-                </ul>
-            {% endif %}
-        {% endwith %}
-
+{% block content %}
+    <div class="container card shadow-sm p-4"> {# Используем Bootstrap классы для контейнера и тени #}
         <div class="text-center mb-4">
-             {# Место для логотипа - можно заменить на img тег с вашим лого #}
-            <div class="logo"></div>
+            <div class="logo-placeholder">RW</div> {# Замените на ваш логотип, если есть #}
             <h1>Данные за {{ view_date }}</h1>
         </div>
 
@@ -131,24 +65,7 @@
         {% if report %}
             <div class="data-section">
                 <h3><i class="fas fa-moon mr-2"></i>Вечерние вопросы</h3>
-
-                <div class="data-item">
-                    <h4><i class="fas fa-tasks mr-2"></i>Чекин по главным задачам дня:</h4>
-                    {% if report.reviewed_tasks and report.reviewed_tasks|length > 0 %}
-                        {% for task in report.reviewed_tasks %} {# Ожидается список объектов: {name: "...", status: "...", comment: "..."} #}
-                            <div class="mb-2 p-3 border rounded" style="background-color: #3a3a3a;">
-                                <p class="mb-1"><strong>Задача:</strong> {{ task.name }}</p>
-                                <p class="mb-1"><strong>Статус:</strong> {{ task.status }}</p>
-                                {% if task.comment and task.comment|trim != "" %}
-                                    <p class="mb-0"><strong>Комментарий:</strong> {{ task.comment }}</p>
-                                {% endif %}
-                            </div>
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-muted">Информация по выполненным задачам не предоставлена или задачи не были запланированы.</p>
-                    {% endif %}
-                </div>
-                <hr style="border-color: #555;">
+                <!-- Чекин по задачам удален отсюда -->
 
                 <div class="data-item">
                     <strong>1. Что сегодня получилось лучше всего?</strong>
@@ -191,19 +108,26 @@
         {% if plan %}
             <div class="data-section">
                 <h3><i class="fas fa-sun mr-2"></i>Утренние вопросы (настрой на день)</h3>
-                <div class="data-item">
-                    <strong>1. Какие 3 главные задачи сегодня приблизят меня к моим долгосрочным целям?</strong>
-                    <small class="d-block text-muted mb-1">Фокусирует на важном, а не на срочном.</small>
-                    {# Теперь читаем из plan.main_goals, который должен быть списком словарей [{'text': 'Задача 1'}, ...] #}
-                    {% if plan.main_goals and plan.main_goals|length > 0 %}
+                <!-- Отображение задач дня -->
+                <h4><i class="fas fa-check-double mr-2"></i>Задачи Дня:</h4>
+                {% if daily_tasks and daily_tasks|length > 0 %}
                         <ul class="list-unstyled pl-3">
-                            {% for task_goal in plan.main_goals %}
-                                <li class="mb-1"><i class="fas fa-bullseye text-info mr-2"></i>{{ task_goal.text }}</li>
+                        {% for task_item in daily_tasks %}
+                            <li class="mb-2 p-2 border rounded {% if task_item.status == 'done' %}bg-light text-success{% elif task_item.is_excluded %}text-muted{% endif %}" style="{% if task_item.is_excluded %}text-decoration: line-through;{% endif %}">
+                                <strong>{{ task_item.text }}</strong>
+                                <small class="d-block">Источник: {{ task_item.source }}, Статус: {{ task_item.status }}</small>
+                                {% if task_item.comment %}
+                                <small class="d-block"><em>Комментарий: {{ task_item.comment }}</em></small>
+                                {% endif %}
+                            </li>
                             {% endfor %}
                         </ul>
-                    {% else %}
-                        <p class="text-muted">Задачи не указаны.</p>
-                    {% endif %}
+                {% else %}
+                    <p class="text-muted">Задачи на этот день не найдены в плане.</p>
+                {% endif %}
+                <hr class="my-3">
+                <!-- Остальные утренние вопросы -->
+                <div class="data-item">
                 </div>
                 <div class="data-item">
                     <strong>2. Как я могу сделать сегодняшний день немного лучше, чем вчерашний?</strong>
@@ -237,50 +161,42 @@
             </div>
         {% endif %}
 
-        {# Отображение эмоциональных отчетов #}
-        {% if emotional_reports %}
+        {# Отображение Дневного Опроса #}
+        {% if daily_survey %}
             <div class="data-section">
-                <h3><i class="far fa-grin-alt mr-2"></i>Эмоциональные события</h3>
-                {% for emotional_report in emotional_reports %}
-                    <div class="data-item">
-                        <strong>Ситуация:</strong>
-                        <p>{{ emotional_report.situation }}</p>
-                    </div>
-                    <div class="data-item">
-                        <strong>Мысль:</strong>
-                        <p>{{ emotional_report.thought }}</p>
-                    </div>
-                    <div class="data-item">
-                        <strong>Чувства:</strong>
-                        <p>{{ emotional_report.feelings }}</p>
-                    </div>
-                    {% if emotional_report.correction %}
-                    <div class="data-item">
-                        <strong>Коррекция:</strong>
-                        <p>{{ emotional_report.correction }}</p>
-                        {% if emotional_report.correction_hint_used and emotional_report.correction_hint_used not in ['custom', 'custom_web'] %}
-                            <small class="text-muted"><em>(Использована подсказка: {{ emotional_report.correction_hint_used }})</em></small>
-                        {% endif %}
-                    </div>
-                    {% endif %}
-                    {% if emotional_report.new_feelings %}
-                    <div class="data-item">
-                        <strong>Новые чувства:</strong>
-                        <p>{{ emotional_report.new_feelings }}</p>
-                    </div>
-                    {% endif %}
-                    <div class="data-item">
-                        <strong>Итог/Влияние:</strong>
-                        <p>{{ emotional_report.impact }}</p>
-                    </div>
-                    {% if not loop.last %}
-                        <hr style="border-color: #555;"> {# Разделитель между эмоциональными отчетами #}
-                    {% endif %}
-                {% endfor %}
+                <h3><i class="fas fa-clipboard-question mr-2"></i>Дневной опрос</h3>
+                <div class="data-item">
+                    <strong>1. Как я себя чувствую прямо сейчас (эмоционально и физически)?</strong>
+                    <p>{{ daily_survey.q1_current_feeling if daily_survey.q1_current_feeling else '-' }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>2. Насколько успешно я сегодня следую утренним намерениям и планам? Что помогает, а что мешает?</strong>
+                    <p>{{ daily_survey.q2_morning_intentions_follow if daily_survey.q2_morning_intentions_follow else '-' }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>3. С какими неожиданными вызовами или возможностями я столкнулся(лась) сегодня и как я на них отреагировал(а)?</strong>
+                    <p>{{ daily_survey.q3_unexpected_challenges_reaction if daily_survey.q3_unexpected_challenges_reaction else '-' }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>4. Что сегодня больше всего отняло у меня энергии, а что, наоборот, добавило сил или вдохновения?</strong>
+                    <p>{{ daily_survey.q4_energy_drain_gain if daily_survey.q4_energy_drain_gain else '-' }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>5. Какой небольшой, но значимый прогресс в своих целях или личном развитии я могу отметить сегодня?</strong>
+                    <p>{{ daily_survey.q5_small_progress if daily_survey.q5_small_progress else '-' }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>6. Насколько я сегодня был(а) сфокусирован(а) на важном? Что было главным отвлечением и как я с ним справился(лась)?</strong>
+                    <p>{{ daily_survey.q6_focus_distraction if daily_survey.q6_focus_distraction else '-' }}</p>
+                </div>
+                <div class="data-item">
+                    <strong>7. Какое одно небольшое действие я могу предпринять до конца дня, чтобы он стал еще чуточку лучше или чтобы подготовиться к завтрашнему дню?</strong>
+                    <p>{{ daily_survey.q7_action_for_better_day if daily_survey.q7_action_for_better_day else '-' }}</p>
+                </div>
             </div>
         {% else %}
             <div class="alert alert-secondary" role="alert">
-                Эмоциональные записи за {{ view_date }} не найдены.
+                Дневной опрос за {{ view_date }} не найден.
             </div>
         {% endif %}
 
@@ -289,11 +205,11 @@
             <div class="data-section">
                 <h3><i class="fas fa-lightbulb mr-2"></i>Рекомендации за день</h3>
                 {% for rec in recommendations_for_date %}
-                    <div class="data-item recommendation-item mb-3 p-3 border rounded bg-darker-2">
+                    <div class="data-item recommendation-item mb-3 p-3 border rounded bg-light"> {# Изменен фон на bg-light #}
                         {{ rec.text | safe }}
                     </div>
                      {% if not loop.last %}
-                        <hr style="border-color: #555;">
+                        <hr class="my-3">
                     {% endif %}
                 {% endfor %}
             </div>
@@ -303,12 +219,5 @@
         {% endif %}
 
         <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
-
     </div>
-
-    {# Подключаем скрипты Bootstrap и jQuery #}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>
+{% endblock %}

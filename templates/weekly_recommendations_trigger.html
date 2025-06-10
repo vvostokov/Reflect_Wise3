@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Еженедельный Обзор{% endblock %}
+
+{% block content %}
+<div class="container mt-4"> 
+    <div class="card shadow-sm"> {# Добавлен shadow-sm для легкой тени, как в других светлых шаблонах #}
+        <div class="card-header">
+            <h2>Еженедельный Обзор и Рекомендации</h2>
+        </div>
+        <div class="card-body">
+            <p>Нажмите кнопку ниже, чтобы сгенерировать ваш еженедельный обзор и рекомендации на основе вашей активности за последнюю неделю. Это может занять некоторое время.</p>
+            <p>После нажатия кнопки, результат появится на <a href="{{ url_for('recommendations') }}">странице всех рекомендаций</a>.</p>
+            
+            <form method="POST" action="{{ url_for('weekly_recommendations_page') }}">
+                <button type="submit" class="btn btn-info btn-lg">
+                    <i class="fas fa-calendar-week"></i> Сгенерировать Еженедельный Обзор
+                </button>
+            </form>
+        </div>
+        <div class="card-footer">
+            <a href="{{ url_for('recommendations') }}" class="btn btn-secondary">Назад к рекомендациям</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

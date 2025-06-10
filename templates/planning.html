@@ -1,38 +1,37 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Планировщик - Reflect Wise</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <!-- jsTree CSS -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default-dark/style.min.css" />
+{% extends "base.html" %}
+
+{% block title %}Планировщик - Reflect Wise{% endblock %}
+
+{% block head_extra %}
+    <!-- jsTree CSS - используем стандартную светлую тему -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
     <style>
-        
-        body { background-color: #222; color: #eee; padding-top: 20px; }
-        .container-fluid { max-width: 1400px; margin: auto; background: #333; padding: 20px; border-radius: 8px; }
-        h1, h2 { color: #00bfff; }
-        .tree-container { border: 1px solid #555; padding: 15px; border-radius: 5px; margin-bottom: 20px; min-height: 300px; background-color: #2a2a2a; }
+        /* .container-fluid стилизуется через base.html и Bootstrap классы */
+        h1, h2 { color: #007bff; /* Стандартный синий Bootstrap */ }
+        .tree-container { 
+            border: 1px solid #dee2e6; /* Bootstrap default border */ 
+            padding: 15px; border-radius: 5px; margin-bottom: 20px; 
+            min-height: 300px; background-color: #fff; /* Белый фон для дерева */
+        }
         .action-buttons button, .global-actions button { margin-right: 10px; margin-bottom: 10px; }
-        #itemFormModal .form-control { background-color: #444; color: #fff; border-color: #555; }
-        #itemFormModal .form-control:focus { background-color: #555; color: #fff; border-color: #00bfff; }
-        .ai-tree-container { margin-top: 20px; border: 1px solid #00bfff; padding: 15px; border-radius: 5px; background-color: #2c3e50; }
-        .jstree-default-dark .jstree-node, .jstree-default-dark .jstree-leaf { color: #ccc; }
-        .jstree-default-dark .jstree-clicked { background: #007bff; color: #fff; }
-        .jstree-default-dark .jstree-hovered { background: #444; }
-        /* Типы узлов для jsTree */
-        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.MISSION-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFD700" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
-        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.GOAL-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FF9800" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
-        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.PROJECT-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%234CAF50" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
-        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.TASK-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%232196F3" width="18px" height="18px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
-        .jstree-default-dark .jstree-themeicon-custom.jstree-icon.SUBTASK-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2303A9F4" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'); background-position: center; background-repeat: no-repeat; background-size: contain; }
+        /* Стили для модального окна и его контролов будут наследоваться от Bootstrap Litera */
+        
+        .ai-tree-container { margin-top: 20px; border: 1px solid #007bff; padding: 15px; border-radius: 5px; background-color: #f8f9fa; /* Светлый фон для AI дерева */ }
+        /* Стили для jsTree default theme (светлая) обычно не требуют переопределения цветов текста/фона */
+
+        /* Иконки для типов узлов jsTree и кнопок */
+        .tree-icon { display: inline-block; width: 18px; height: 18px; background-position: center; background-repeat: no-repeat; background-size: contain; vertical-align: middle; margin-right: 5px;}
+        .jstree-default .jstree-icon.MISSION-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FFC107" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>'); }
+        .jstree-default .jstree-icon.GOAL-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23FD7E14" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6zm0 10c-2.21 0-4-1.79-4-4s1.79-4 4-4 4 1.79 4 4-1.79 4-4 4zm0-7c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>'); }
+        .jstree-default .jstree-icon.PROJECT-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%2320C997" width="18px" height="18px"><path d="M0 0h24v24H0z" fill="none"/><path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>'); }
+        .jstree-default .jstree-icon.TASK-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230D6EFD" width="18px" height="18px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>'); }
+        .jstree-default .jstree-icon.SUBTASK-icon { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%230DCAF0" width="16px" height="16px"><path d="M0 0h24v24H0V0z" fill="none"/><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>'); }
         .tree-controls {
             margin-bottom: 20px;
             padding: 10px 15px;
-            background-color: #3a3a3a;
+            background-color: #f8f9fa; /* Bootstrap bg-light */
             border-radius: 5px;
-            border: 1px solid #555;
+            border: 1px solid #dee2e6; /* Bootstrap default border */
         }
         .tree-controls .btn-group {
             margin-right: 15px;
@@ -40,42 +39,42 @@
         .tree-controls strong {
             display: block;
             margin-bottom: 8px;
-            color: #00bfff;
+            color: #007bff; 
         }
         #aiTreeActions { margin-top: 10px; }
+        .sphere-icon {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 4px; /* Отступ от иконки типа или предыдущей иконки сферы */
+            vertical-align: middle;
+            border: 1px solid #adb5bd; 
+            /* background-color: #ccc !important; /* Для отладки - серый фон по умолчанию */
+        }
+        .sphere-icons-wrapper {
+            display: inline-block; /* Важно для позиционирования и размеров */
+            vertical-align: middle;
+            margin-left: 3px; /* Небольшой отступ от основной иконки */
+            /* background-color: rgba(0, 255, 0, 0.1); /* Легкий зеленый фон для отладки wrapper */
+        }
+        /* Цвета для сфер будут добавлены в JS или могут быть предопределены здесь, если их немного */
+        #selectedItemDescriptionContainer {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa; /* Bootstrap bg-light */
+            border: 1px solid #dee2e6; /* Bootstrap default border */
+            border-radius: 5px;
+            min-height: 80px; /* Минимальная высота для отображения */
+        }
     </style>
-</head>
-<body>
-    <div class="container-fluid">
+{% endblock %}
+
+{% block content %}
+    <div class="container-fluid card shadow-sm p-3"> {# Используем Bootstrap классы #}
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1><i class="fas fa-sitemap"></i> Планировщик</h1>
             <a href="{{ url_for('index') }}" class="btn btn-outline-secondary"><i class="fas fa-arrow-left"></i> На главную</a>
-        </div>
-
-        <div class="tree-controls">
-            <strong><i class="fas fa-eye"></i> Управление отображением деревьев:</strong>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Свернуть до уровня">
-                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="MISSION">Миссии</button>
-                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="GOAL">Цели</button>
-                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="PROJECT">Проекты</button>
-                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="TASK">Задачи</button>
-                <button type="button" class="btn btn-outline-light tree-level-btn" data-level-type="SUBTASK">Подзадачи</button>
-            </div>
-            <div class="btn-group btn-group-sm" role="group" aria-label="Развернуть/Свернуть всё">
-                <button type="button" class="btn btn-outline-info" id="expandAllTreesBtn"><i class="fas fa-expand-arrows-alt"></i> Развернуть всё</button>
-                <button type="button" class="btn btn-outline-warning" id="collapseAllTreesBtn"><i class="fas fa-compress-arrows-alt"></i> Свернуть всё</button>
-            </div>
-        </div>
-
-        <div class="tree-controls" id="statusFilterControls">
-            <strong><i class="fas fa-filter"></i> Фильтр по статусу (для "Ваша структура"):</strong>
-            <div id="statusCheckboxesContainer" class="d-flex flex-wrap mt-2 mb-2">
-                <!-- Checkboxes will be dynamically inserted here -->
-            </div>
-            <div class="btn-group btn-group-sm">
-                <button type="button" class="btn btn-outline-primary" id="applyStatusFilterBtn"><i class="fas fa-check"></i> Применить фильтр</button>
-                <button type="button" class="btn btn-outline-secondary" id="resetStatusFilterBtn"><i class="fas fa-times"></i> Сбросить</button>
-            </div>
         </div>
 
         <div class="row">
@@ -86,25 +85,47 @@
                     <button id="btnAddChildItem" class="btn btn-sm btn-success"><i class="fas fa-plus-circle"></i> Добавить дочерний</button>
                     <button id="btnAiSuggestChildren" class="btn btn-sm btn-outline-primary"><i class="fas fa-magic"></i> AI Предложить дочерние</button>
                     <button id="btnDeleteItem" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i> Удалить</button>
+                    <button id="btnExportBranch" class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-export"></i> Экспорт ветки</button>
                 </div>
                 <div id="planTree" class="tree-container user-tree-container">
                     <!-- Дерево будет здесь -->
                 </div>
                 <div class="global-actions mt-3">
-                    <button id="btnCreateMissionRoot" class="btn btn-primary"><i class="fas fa-flag-checkered"></i> Новая Миссия</button>
-                    <button id="btnCreateGoalRoot" class="btn btn-warning"><i class="fas fa-bullseye"></i> Новая Цель</button>
-                    <button id="btnCreateProjectRoot" class="btn btn-info"><i class="fas fa-folder-open"></i> Новый Проект</button>
-                    <button id="btnCreateTaskRoot" class="btn btn-secondary"><i class="fas fa-tasks"></i> Новая Задача</button>
+                    <button id="btnCreateMissionRoot" class="btn btn-outline-primary btn-sm"><span class="tree-icon MISSION-icon"></span>+ Миссия</button>
+                    <button id="btnCreateGoalRoot" class="btn btn-outline-warning btn-sm"><span class="tree-icon GOAL-icon"></span>+ Цель</button>
+                    <button id="btnCreateProjectRoot" class="btn btn-outline-info btn-sm"><span class="tree-icon PROJECT-icon"></span>+ Проект</button>
+                    <button id="btnCreateTaskRoot" class="btn btn-outline-secondary btn-sm"><span class="tree-icon TASK-icon"></span>+ Задача</button>
+                    <button id="btnCreateSubtaskRoot" class="btn btn-outline-info btn-sm"><span class="tree-icon SUBTASK-icon"></span>+ Подзадача</button>
+                </div>
+                <div id="selectedItemDescriptionContainer" class="mt-3">
+                    <p class="text-muted"><em>Выберите элемент в дереве, чтобы увидеть его описание.</em></p>
                 </div>
             </div>
             <div class="col-md-5">
                 <h2><i class="fas fa-magic"></i> AI Помощник</h2>
                 <button id="btnOptimizeStructure" class="btn btn-outline-info mb-2"><i class="fas fa-lightbulb"></i> Предложить оптимизацию</button>
                 <button id="btnGenerateAiTree" class="btn btn-outline-success mb-2"><i class="fas fa-robot"></i> Сгенерировать структуру с AI</button>
+                
+                <div class="my-2">
+                    <label for="importFile" class="btn btn-sm btn-outline-secondary mb-0"><i class="fas fa-file-import"></i> Выбрать файл для импорта</label>
+                    <input type="file" id="importFile" accept=".json,.txt" style="display: none;">
+                    <button id="btnImportBranch" class="btn btn-sm btn-primary" style="display: none;"><i class="fas fa-upload"></i> Импортировать ветку</button>
+                    <span id="selectedFileName" class="ml-2 small"></span>
+                </div>
+
                 <div id="aiTreeActions" style="display:none;">
                     <button id="btnCopyAiNode" class="btn btn-sm btn-primary"><i class="fas fa-copy"></i> Скопировать в мою структуру</button>
+                </div>                
+                <div class="my-3 p-3 bg-light rounded border">  {# Изменен фон и граница #}
+                    <h5><i class="fas fa-edit"></i> Модифицировать структуру с AI</h5>
+                    <div class="form-group">
+                        <label for="ai_modify_prompt">Ваш промпт для изменения дерева:</label>
+                        <textarea class="form-control" id="ai_modify_prompt" rows="3" placeholder="Например: 'Добавь задачу 'Написать отчет' к проекту 'Завершение квартала'. Или 'Переименуй миссию 'Личностный рост' в 'Саморазвитие'.'"></textarea> {# Убраны классы для темного фона #}
+                    </div>
+                    <button id="btn_modify_tree_ai" class="btn btn-info mt-2 btn-sm"><i class="fas fa-paper-plane"></i> Отправить промпт AI</button>
                 </div>
-                <div id="aiTree" class="tree-container ai-tree-container" style="display:none;">
+                
+                <div id="aiTree" class="tree-container ai-tree-container";">
                     <!-- AI дерево будет здесь -->
                 </div>
                  <div id="aiSuggestions" class="mt-3 p-3 bg-dark rounded" style="display:none;">
@@ -113,15 +134,64 @@
                 </div>
             </div>
         </div>
+
+        <hr class="my-4">
+        
+        <!-- Фильтры и управление отображением перенесены вниз -->
+        <div class="tree-controls">
+            <strong><i class="fas fa-eye"></i> Управление отображением деревьев:</strong>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Свернуть до уровня">
+                <button type="button" class="btn btn-outline-secondary tree-level-btn" data-level-type="MISSION">Миссии</button>
+                <button type="button" class="btn btn-outline-secondary tree-level-btn" data-level-type="GOAL">Цели</button>
+                <button type="button" class="btn btn-outline-secondary tree-level-btn" data-level-type="PROJECT">Проекты</button>
+                <button type="button" class="btn btn-outline-secondary tree-level-btn" data-level-type="TASK">Задачи</button>
+                <button type="button" class="btn btn-outline-secondary tree-level-btn" data-level-type="SUBTASK">Подзадачи</button>
+            </div>
+            <div class="btn-group btn-group-sm" role="group" aria-label="Развернуть/Свернуть всё">
+                <button type="button" class="btn btn-outline-info" id="expandAllTreesBtn"><i class="fas fa-expand-arrows-alt"></i> Развернуть всё</button>
+                <button type="button" class="btn btn-outline-warning" id="collapseAllTreesBtn"><i class="fas fa-compress-arrows-alt"></i> Свернуть всё</button>
+            </div>
+        </div>
+
+        <div class="tree-controls mt-3" id="statusFilterControls">
+            <strong><i class="fas fa-filter"></i> Фильтры для "Ваша структура":</strong>
+            <div class="row">
+                <div class="col-md-4">
+                    <label for="priorityFilterSelect">Приоритет:</label>
+                    <select id="priorityFilterSelect" class="form-control form-control-sm mb-2">
+                        <option value="">Все приоритеты</option>
+                        {% for key, value in priority_values.items() %}
+                        <option value="{{ key }}">{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-8">
+                    <label>Статус:</label>
+                    <div id="statusCheckboxesContainer" class="d-flex flex-wrap mb-2">
+                        <!-- Checkboxes for status will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label>Сферы жизни (выберите одну или несколько):</label>
+                <div id="sphereFilterCheckboxesContainer" class="d-flex flex-wrap mb-2 border rounded p-2" style="max-height: 100px; overflow-y: auto; background-color: #fff;">
+                    <!-- Checkboxes for spheres will be dynamically inserted here -->
+                </div>
+            </div>
+            <div class="btn-group btn-group-sm mt-2">
+                <button type="button" class="btn btn-outline-primary" id="applyAllFiltersBtn"><i class="fas fa-check"></i> Применить фильтры</button>
+                <button type="button" class="btn btn-outline-secondary" id="resetAllFiltersBtn"><i class="fas fa-times"></i> Сбросить все фильтры</button>
+            </div>
+        </div>
     </div>
 
     <!-- Модальное окно для создания/редактирования элемента -->
     <div class="modal fade" id="itemFormModal" tabindex="-1" role="dialog" aria-labelledby="itemFormModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
-            <div class="modal-content bg-secondary text-white">
+            <div class="modal-content"> {# Убраны классы bg-secondary text-white для стандартного вида модального окна Litera #}
                 <div class="modal-header">
                     <h5 class="modal-title" id="itemFormModalLabel">Элемент</h5>
-                    <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"> {# Убран text-white #}
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -164,22 +234,42 @@
                                 <option value="CANCELLED">Отменено</option>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="itemPriority">Приоритет</label>
+                            <select class="form-control" id="itemPriority">
+                                <option value="">-- Не указан --</option>
+                                {# priority_values передается из Flask: {'HIGH': 'Высокий', ...} #}
+                                {% for key, value in priority_values.items() %}
+                                <option value="{{ key }}">{{ value }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Сферы жизни</label>
+                            <div id="itemSpheresContainer" class="border p-2 rounded" style="max-height: 150px; overflow-y: auto; background-color: #f8f9fa;"> {# Светлый фон для контейнера сфер #}
+                                {# sphere_names передается из Flask #}
+                                {% for sphere_name in sphere_names %}
+                                <div class="form-check">
+                                    <input class="form-check-input item-sphere-checkbox" type="checkbox" value="{{ sphere_name }}" id="sphere_{{ loop.index0 }}">  {# Используем loop.index0 для уникальных ID, если нужно #}
+                                    <label class="form-check-label" for="sphere_{{ loop.index0 }}">{{ sphere_name }}</label>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-dark" data-dismiss="modal">Отмена</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button> {# Изменено на btn-secondary для стандартного вида #}
                     <button type="button" class="btn btn-primary" id="saveItemButton">Сохранить</button>
                 </div>
             </div>
         </div>
     </div>
+{% endblock %}
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% block scripts %}
     <!-- jsTree JavaScript -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
-
     <script>
         $(function () {
             // --- jsTree инициализация и логика ---
@@ -189,6 +279,17 @@
             let currentEditId = null;
             let allPlanItemsForParentSelector = []; // Для хранения всех узлов для селектора родителя
             let currentParentIdForNewChild = null;
+            
+            // Цвета для сфер (можно расширить или сделать динамическими)
+            const sphereColors = {
+                "Здоровье": "#28a745", "Саморазвитие": "#ffc107", "Карьера/Труд": "#007bff",
+                "Общество/Социальная жизнь": "#17a2b8", "Интеллект": "#6f42c1", "Навыки": "#fd7e14",
+                "Знания": "#20c997", "Эмоциональное благополучие": "#e83e8c", "Духовное развитие": "#6610f2",
+                "Финансы": "#28a745", "Отдых и развлечения": "#fd7e14", "Безопасность и комфорт": "#6c757d"
+                // Добавьте больше цветов по необходимости
+            };
+            const defaultSphereColor = "#adb5bd"; // Серый для сфер без заданного цвета
+
 
             // Иерархия типов для управления сворачиванием/разворачиванием
             const typeHierarchy = ['MISSION', 'GOAL', 'PROJECT', 'TASK', 'SUBTASK'];
@@ -248,18 +349,18 @@
                         'data': dataUrlOrData, // URL для AJAX или массив данных
                         'check_callback': true, // Разрешает DND, create, delete и т.д.
                         'themes': {
-                            'name': 'default-dark', // Используем темную тему
+                            'name': 'default', // Используем стандартную светлую тему jsTree
                             'responsive': true
                         }
                     },
                     'plugins': ['types', 'contextmenu', 'dnd', 'wholerow'], // dnd для drag-n-drop
                     'types': {
-                        "default": { "icon": "fas fa-ellipsis-h text-secondary" }, // Иконка по умолчанию
-                        "MISSION": { "icon": "MISSION-icon" }, // Используем кастомные CSS классы
-                        "GOAL": { "icon": "GOAL-icon" },
-                        "PROJECT": { "icon": "PROJECT-icon" },
-                        "TASK": { "icon": "TASK-icon" },
-                        "SUBTASK": { "icon": "SUBTASK-icon" },
+                        "default": { "icon": "tree-icon fas fa-ellipsis-h text-secondary" }, // Иконка по умолчанию
+                        "MISSION": { "icon": "tree-icon MISSION-icon" }, 
+                        "GOAL": { "icon": "tree-icon GOAL-icon" },
+                        "PROJECT": { "icon": "tree-icon PROJECT-icon" },
+                        "TASK": { "icon": "tree-icon TASK-icon" },
+                        "SUBTASK": { "icon": "tree-icon SUBTASK-icon" },
                         "INFO": { "icon": "fas fa-info-circle text-info" },
                         "ERROR": { "icon": "fas fa-exclamation-triangle text-danger" }
                     },
@@ -322,6 +423,12 @@
                         $('#contextActions').show();
                         currentEditId = selectedNode.id; // Для кнопок вне дерева
                         currentParentIdForNewChild = selectedNode.id;
+                        // Отображаем описание
+                        const description = selectedNode.original.description || "<em>Описание отсутствует.</em>";
+                        $('#selectedItemDescriptionContainer').html(description);
+                    } else {
+                         $('#selectedItemDescriptionContainer').html('<p class="text-muted"><em>Выберите элемент в дереве, чтобы увидеть его описание.</em></p>');
+
                     }
                 })
                 .on('deselect_node.jstree', function (e, data) {
@@ -336,14 +443,55 @@
                         $('#contextActions').hide();
                         currentEditId = null;
                         currentParentIdForNewChild = null;
+                        $('#selectedItemDescriptionContainer').html('<p class="text-muted"><em>Выберите элемент в дереве, чтобы увидеть его описание.</em></p>');
                     }
                 })
                 .on('loaded.jstree', function(e, data) {
                     if (!isAiTree) {
                         // После загрузки основного дерева, получаем все узлы для селектора родителя
-                        const allNodes = $planTree.jstree(true).get_json('#', { 'flat': true });
+                        const treeInstance = $(this).jstree(true);
+                        const allNodes = treeInstance.get_json('#', { 'flat': true });
+                        allPlanItemsForParentSelector = allNodes.map(nodeData => {
+                            const node = treeInstance.get_node(nodeData.id); // Получаем полный объект узла
+                            return {
+                                id: node.id, text: node.text, type: node.type, parent: node.parent, 
+                                spheres: (node && node.original) ? node.original.spheres : [] // Проверка на node.original
+                            };
+                        });
+                        // console.log("All items for parent selector (on load):", allPlanItemsForParentSelector.length);
+                        renderSphereIcons($(this).jstree(true));
+                    }
+                })
+                .on('refresh.jstree', function (e, data) { // Добавляем этот обработчик события
+                    if (!isAiTree) {
+                        const treeInstance = $(this).jstree(true);
+                        const allNodes = treeInstance.get_json('#', { 'flat': true });
+                        allPlanItemsForParentSelector = allNodes.map(nodeData => {
+                            const node = treeInstance.get_node(nodeData.id);
+                            return {
+                                id: node.id, text: node.text, type: node.type, parent: node.parent, 
+                                spheres: (node && node.original) ? node.original.spheres : []
+                            };
+                        });
+                        renderSphereIcons($(this).jstree(true));
+                    }
+                })
+                .on('redraw.jstree', function(e, data) { // Для перерисовки, включая после DND
+                    if (!isAiTree) {
+                        renderSphereIcons($(this).jstree(true));
+                    }
+                })
+                .on('open_node.jstree create_node.jstree', function(e, data) { // После открытия узла или создания нового
+                     if (!isAiTree) {
+                        // Небольшая задержка, чтобы убедиться, что узел отрисован
+                        setTimeout(() => renderSphereIcons($(this).jstree(true), data.node ? [data.node.id] : null), 50);
+                    }
+                })
+                .on('copy_node.jstree', function(e, data) { // После копирования узла
+                    if (!isAiTree) {
+                        const allNodes = $(this).jstree(true).get_json('#', { 'flat': true });
                         allPlanItemsForParentSelector = allNodes.map(node => ({id: node.id, text: node.text, type: node.type, parent: node.parent }));
-                        // console.log("All items for parent selector:", allPlanItemsForParentSelector);
+                        // console.log("All items for parent selector (on refresh):", allPlanItemsForParentSelector.length);
                     }
                 })
                 .on('move_node.jstree', function(e, data) { // Обработка DND
@@ -368,6 +516,32 @@
                             $planTree.jstree(true).refresh(); // Откатить изменения на клиенте
                         }
                     });
+                });
+            }
+
+            function renderSphereIcons(treeInstance, nodeIdsToUpdate = null) {
+                if (!treeInstance) return;
+                const nodesToProcess = nodeIdsToUpdate 
+                    ? nodeIdsToUpdate.map(id => treeInstance.get_node(id)).filter(n => n)
+                    : treeInstance.get_json('#', { flat: true });
+
+                nodesToProcess.forEach(nodeData => {
+                    const node = treeInstance.get_node(nodeData.id || nodeData); // nodeData может быть ID или объектом узла
+                    if (!node || !node.original || !node.original.spheres || node.original.spheres.length === 0) return;
+
+                    const anchor = treeInstance.get_node(node.id, true).find('> .jstree-anchor');
+                    if (anchor.length === 0) return;
+
+                    anchor.find('.sphere-icons-wrapper').remove(); // Удаляем старые иконки сфер
+
+                    const sphereIconsWrapper = $('<span class="sphere-icons-wrapper"></span>');
+                    node.original.spheres.forEach(sphereName => {
+                        const sphereColor = sphereColors[sphereName] || defaultSphereColor;
+                        sphereIconsWrapper.append(
+                            $('<span class="sphere-icon"></span>').css('background-color', sphereColor).attr('title', sphereName)
+                        );
+                    });
+                    anchor.find('.jstree-themeicon').after(sphereIconsWrapper); // Вставляем после иконки типа
                 });
             }
             
@@ -437,17 +611,34 @@
                 currentEditId = null;
                 let preselectedParentId = null;
                 let preselectedType = 'TASK'; // Тип по умолчанию для новых
+                
+                // Сброс приоритета и сфер
+                $('#itemPriority').val('');
+                $('.item-sphere-checkbox').prop('checked', false);
                 let currentItemIdForParentFilter = null;
 
                 if (mode === 'edit' && node) {
                     $('#itemFormModalLabel').text('Редактировать: ' + node.original.text); // Используем node.original.text если есть, иначе node.text
                     $('#itemId').val(node.id);
+                    // --- ОТЛАДОЧНЫЙ ВЫВОД ---
+                    console.log("OPENING EDIT FORM FOR NODE:", node.id);
+                    console.log("Node data passed to openItemForm:", JSON.parse(JSON.stringify(node))); // Глубокое копирование для чистого лога
+                    console.log("Description from node.original:", node.original.description);
+                    console.log("Spheres from node.original:", node.original.spheres);
+                    // --- КОНЕЦ ОТЛАДОЧНОГО ВЫВОДА ---
                     currentEditId = node.id;
                     currentItemIdForParentFilter = node.id;
                     $('#itemName').val(node.original.text || node.text);
                     preselectedType = node.type;
                     $('#itemDescription').val(node.original.description || '');
                     $('#itemStatus').val(node.original.status || 'TODO');
+                    $('#itemPriority').val(node.original.priority || ''); // node.original.priority будет "HIGH", "MEDIUM", "LOW" или null
+                    if (node.original.spheres && Array.isArray(node.original.spheres)) {
+                        node.original.spheres.forEach(sphereName => {
+                            // Убедимся, что значение в чекбоксе точно соответствует
+                            $(`.item-sphere-checkbox[value="${sphereName.replace(/"/g, '\\"')}"]`).prop('checked', true);
+                        });
+                    }
                     preselectedParentId = node.parent;
                 } else if (mode === 'new_child' && node) {
                     $('#itemFormModalLabel').text('Новый дочерний для: ' + node.text);
@@ -473,6 +664,7 @@
             $('#btnCreateGoalRoot').click(() => openItemForm('new_goal'));
             $('#btnCreateProjectRoot').click(() => openItemForm('new_project'));
             $('#btnCreateTaskRoot').click(() => openItemForm('new_task'));
+            $('#btnCreateSubtaskRoot').click(() => openItemForm('new_subtask'));
 
             $('#btnEditItem').click(function() {
                 const selectedNodeId = $planTree.jstree('get_selected')[0];
@@ -516,12 +708,20 @@
                     description: $('#itemDescription').val(),
                     status: $('#itemStatus').val(),
                     parent_id: parentId === '#' ? null : parentId // Отправляем null для корневых
+                    // start_date будет добавлено ниже
                 };
 
                 if (!itemData.name || !itemData.item_type) {
                     alert('Название и тип обязательны!');
                     return;
                 }
+                // Добавляем приоритет и сферы
+                itemData.priority = $('#itemPriority').val() || null; // Отправляем null, если не выбрано
+                const selectedSpheres = [];
+                $('.item-sphere-checkbox:checked').each(function() {
+                    selectedSpheres.push($(this).val());
+                });
+                itemData.spheres = selectedSpheres;
 
                 const url = itemId ? `/api/planning_items/${itemId}` : '/api/planning_items';
                 const method = itemId ? 'PUT' : 'POST';
@@ -532,12 +732,36 @@
                     contentType: 'application/json',
                     data: JSON.stringify(itemData),
                     success: function(response) {
-                        $('#itemFormModal').modal('hide');
-                        // Обновляем данные для селектора родителя и дерево
-                        $.jstree.reference('#planTree').refresh_node(parentId === '#' ? '#': parentId); // Обновить родителя
-                        $.jstree.reference('#planTree').refresh(); // Полное обновление
-                        // Перезагружаем все узлы для селектора после сохранения
-                        // allPlanItemsForParentSelector = $planTree.jstree(true).get_json('#', { 'flat': true }).map(n => ({id: n.id, text: n.text, type: n.type, parent: n.parent}));
+                        $('#itemFormModal').modal('hide');                        
+                        // console.log("Server response on save:", response);
+                        const treeInstance = $.jstree.reference('#planTree');
+                        if (treeInstance) {
+                            if (itemId) { // Если редактировали существующий узел
+                                // console.log("Attempting to update node:", itemId, "New data from server:", response);
+                                const nodeToUpdate = treeInstance.get_node(itemId);
+                                if (nodeToUpdate) {
+                                    // console.log("Node found in tree:", nodeToUpdate);
+                                    treeInstance.set_text(nodeToUpdate, response.text); 
+                                    if (response.original) {
+                                        // Явное обновление каждого поля в nodeToUpdate.original
+                                        nodeToUpdate.original.name = response.original.name !== undefined ? response.original.name : nodeToUpdate.original.name;
+                                        nodeToUpdate.original.description = response.original.description !== undefined ? response.original.description : nodeToUpdate.original.description;
+                                        nodeToUpdate.original.status = response.original.status !== undefined ? response.original.status : nodeToUpdate.original.status;
+                                        nodeToUpdate.original.item_type = response.original.item_type !== undefined ? response.original.item_type : nodeToUpdate.original.item_type; // Обновляем и item_type в original
+                                        nodeToUpdate.original.start_date = response.original.start_date !== undefined ? response.original.start_date : nodeToUpdate.original.start_date;
+                                        nodeToUpdate.original.priority = response.original.priority !== undefined ? response.original.priority : nodeToUpdate.original.priority;
+                                        nodeToUpdate.original.spheres = response.original.spheres !== undefined ? (response.original.spheres || []) : (nodeToUpdate.original.spheres || []);
+                                        // console.log("Node original data after explicit update:", JSON.parse(JSON.stringify(nodeToUpdate.original))); // Для глубокого логирования
+                                    }
+                                    treeInstance.set_type(nodeToUpdate, response.type); // Обновляем тип, если нужно
+                                    // treeInstance.redraw_node(nodeToUpdate, false, false, true); // Попробовать перерисовать узел
+                                    renderSphereIcons(treeInstance, [itemId]); // Перерисовываем иконки сфер для этого узла
+                                } else { treeInstance.refresh(); } // Если узел не найден, обновляем все дерево
+                            } else { // Если создавали новый узел
+                                treeInstance.refresh(); // Полное обновление для отображения нового узла
+                            }
+                        }
+                        $('#selectedItemDescriptionContainer').html('<p class="text-muted"><em>Выберите элемент в дереве, чтобы увидеть его описание.</em></p>');
                         $('#contextActions').hide();
                     },
                     error: function(xhr) {
@@ -551,10 +775,10 @@
                     url: `/api/planning_items/${itemId}`,
                     method: 'DELETE',
                     success: function() {
-                        // Обновляем данные для селектора родителя и дерево
-                        $.jstree.reference('#planTree').refresh();
+                        $.jstree.reference('#planTree').refresh(); // Это вызовет событие 'refresh.jstree'
                         // allPlanItemsForParentSelector = $planTree.jstree(true).get_json('#', { 'flat': true }).map(n => ({id: n.id, text: n.text, type: n.type, parent: n.parent}));
                         $('#contextActions').hide();
+                        $('#selectedItemDescriptionContainer').html('<p class="text-muted"><em>Выберите элемент в дереве, чтобы увидеть его описание.</em></p>');
                     },
                     error: function(xhr) {
                         alert('Ошибка при удалении: ' + xhr.responseText);
@@ -573,6 +797,101 @@
                 } else {
                     alert('Выберите элемент в AI структуре для копирования.');
                 }
+            });
+
+            // --- Экспорт / Импорт ---
+            $('#btnExportBranch').click(function() {
+                const selectedNodeId = $planTree.jstree('get_selected')[0];
+                if (!selectedNodeId) {
+                    alert('Выберите элемент (ветку) для экспорта.');
+                    return;
+                }
+                const treeInstance = $planTree.jstree(true);
+                
+                function getNodeDataRecursive(nodeId) {
+                    const node = treeInstance.get_node(nodeId);
+                    if (!node) return null;
+
+                    const nodeData = {
+                        name: node.text,
+                        type: node.type,
+                        description: node.original.description || "",
+                        status: node.original.status || "TODO",
+                        priority: node.original.priority || null,
+                        spheres: node.original.spheres || [],
+                        children: []
+                    };
+                    if (node.children && node.children.length > 0) {
+                        node.children.forEach(childId => {
+                            const childData = getNodeDataRecursive(childId);
+                            if (childData) nodeData.children.push(childData);
+                        });
+                    }
+                    return nodeData;
+                }
+
+                const branchData = getNodeDataRecursive(selectedNodeId);
+                if (branchData) {
+                    const filename = `${branchData.name.replace(/[^a-z0-9]/gi, '_')}_export.json`;
+                    const jsonString = JSON.stringify(branchData, null, 2);
+                    
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                }
+            });
+
+            $('#importFile').on('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    $('#selectedFileName').text(file.name);
+                    $('#btnImportBranch').show();
+                } else {
+                    $('#selectedFileName').text('');
+                    $('#btnImportBranch').hide();
+                }
+            });
+
+            $('#btnImportBranch').click(function() {
+                const fileInput = document.getElementById('importFile');
+                if (!fileInput.files || fileInput.files.length === 0) {
+                    alert('Пожалуйста, выберите файл для импорта.');
+                    return;
+                }
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedData = JSON.parse(e.target.result);
+                        const selectedParentNodeId = $planTree.jstree('get_selected')[0];
+                        const parentDbId = selectedParentNodeId ? selectedParentNodeId : null;
+
+                        $.ajax({
+                            url: '{{ url_for("import_planning_branch") }}',
+                            method: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify({ branch_data: importedData, parent_id: parentDbId }),
+                            success: function(response) {
+                                alert(response.message || 'Ветка успешно импортирована!');
+                                $planTree.jstree(true).refresh();
+                                $('#importFile').val(''); // Сброс инпута файла
+                                $('#selectedFileName').text('');
+                                $('#btnImportBranch').hide();
+                            },
+                            error: function(xhr) {
+                                alert('Ошибка импорта: ' + (xhr.responseJSON ? xhr.responseJSON.error : xhr.statusText));
+                            }
+                        });
+                    } catch (err) {
+                        alert('Ошибка парсинга файла. Убедитесь, что это корректный JSON файл. Ошибка: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
             });
 
 
@@ -646,6 +965,58 @@
                 });
             });
 
+            // Обработчик для кнопки "Отправить промпт AI" для модификации дерева
+            $('#btn_modify_tree_ai').on('click', function() {
+                const promptText = $('#ai_modify_prompt').val();
+                if (!promptText.trim()) {
+                    alert('Пожалуйста, введите промпт для AI.');
+                    return;
+                }
+
+                $(this).prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Обработка...');
+
+                $.ajax({
+                    url: '/api/planning/modify_tree_ai', // Убедитесь, что этот эндпоинт существует
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ prompt: promptText }),
+                    success: function(response) {
+                        alert(response.message || 'Запрос на модификацию отправлен.'); 
+                        
+                        // Если AI действительно модифицирует дерево и возвращает обновленные данные:
+                        if (response.modified_tree_data) {
+                             // Обновляем основное дерево пользователя
+                            // const planTreeInstance = $planTree.jstree(true);
+                            // if (planTreeInstance) {
+                                // planTreeInstance.settings.core.data = response.modified_tree_data; // Не обновляем planTree напрямую здесь
+                                // planTreeInstance.refresh(); // planTree обновится при следующем общем refresh, если данные в БД изменились
+                            // }
+
+                             // Также отображаем это измененное дерево в панели AI
+                             // (в #aiTree)
+                             const aiTreeInstance = $aiTree.jstree(true);
+                             if (aiTreeInstance) {
+                                 aiTreeInstance.destroy(); // Уничтожаем старое AI дерево, если оно было
+                             }
+                             $('#aiTree').show(); // Показываем контейнер AI дерева
+                             if (response.modified_tree_data.length > 0) { // Только если есть данные для отображения
+                                initializeTree('#aiTree', response.modified_tree_data, true); // isAiTree = true
+                             }
+                        }
+                        
+                        $('#ai_modify_prompt').val(''); // Очищаем поле ввода
+                        console.log("AI Modification Response:", response);
+                    },
+                    error: function(xhr) {
+                        const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Ошибка при отправке промпта AI.';
+                        alert('Ошибка: ' + errorMsg + (xhr.responseJSON && xhr.responseJSON.details ? ' Детали: ' + xhr.responseJSON.details : ''));
+                        console.error("AI Modification Error:", xhr.responseJSON || xhr.responseText);
+                    },
+                    complete: function() {
+                        $('#btn_modify_tree_ai').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Отправить промпт AI');
+                    }
+                });
+            });
             // --- Управление отображением деревьев ---
             $('.tree-level-btn').on('click', function() {
                 const targetType = $(this).data('level-type');
@@ -679,12 +1050,23 @@
                 `);
             });
 
-            $('#applyStatusFilterBtn').on('click', function() {
+            // --- Логика фильтров (статус, приоритет, сферы) ---
+            const $sphereFilterCheckboxesContainer = $('#sphereFilterCheckboxesContainer');
+            const sphereNamesForFilter = {{ sphere_names | tojson }}; // Получаем из Flask
+            sphereNamesForFilter.forEach(sphereName => {
+                $sphereFilterCheckboxesContainer.append(`
+                    <div class="form-check form-check-inline mr-3 mb-1">
+                        <input class="form-check-input sphere-filter-checkbox" type="checkbox" id="sphere_filter_${sphereName.replace(/\s+/g, '_')}" value="${sphereName}">
+                        <label class="form-check-label" for="sphere_filter_${sphereName.replace(/\s+/g, '_')}">${sphereName}</label>
+                    </div>
+                `);
+            });
+
+            $('#applyAllFiltersBtn').on('click', function() {
                 const selectedStatuses = [];
                 $('.status-filter-checkbox:checked').each(function() {
                     selectedStatuses.push($(this).val());
                 });
-
                 let newUrl = originalPlanTreeDataUrl;
                 if (selectedStatuses.length > 0) {
                     const params = new URLSearchParams();
@@ -692,6 +1074,20 @@
                     newUrl += (originalPlanTreeDataUrl.includes('?') ? '&' : '?') + params.toString();
                 }
 
+                const selectedPriority = $('#priorityFilterSelect').val();
+                const selectedSpheres = [];
+                $('.sphere-filter-checkbox:checked').each(function() {
+                    selectedSpheres.push($(this).val());
+                });
+
+                const filterParams = new URLSearchParams();
+                selectedStatuses.forEach(status => filterParams.append('status', status));
+                if (selectedPriority) {
+                    filterParams.append('priority', selectedPriority);
+                }
+                selectedSpheres.forEach(sphere => filterParams.append('sphere', sphere));
+
+                newUrl = originalPlanTreeDataUrl + (filterParams.toString() ? '?' + filterParams.toString() : '');
                 const treeInstance = $planTree.jstree(true);
                 if (treeInstance) {
                     treeInstance.settings.core.data.url = newUrl;
@@ -699,8 +1095,11 @@
                 }
             });
 
-            $('#resetStatusFilterBtn').on('click', function() {
+            $('#resetAllFiltersBtn').on('click', function() {
                 $('.status-filter-checkbox').prop('checked', false);
+                $('#priorityFilterSelect').val('');
+                $('.sphere-filter-checkbox').prop('checked', false);
+
                 const treeInstance = $planTree.jstree(true);
                 if (treeInstance) {
                     treeInstance.settings.core.data.url = originalPlanTreeDataUrl; // Reset to original URL
@@ -709,5 +1108,4 @@
             });
         });
     </script>
-</body>
-</html>
+{% endblock %}

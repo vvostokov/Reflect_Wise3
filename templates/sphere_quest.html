@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Развитие Сфер - {{ date_today_str }}{% endblock %}
+
+{% block content %}
+{# .container уже есть в base.html, mt-4 тоже. Можно добавить card и shadow для единообразия, если нужно #}
+<div class="container card shadow-sm p-4"> 
+    <div class="row mb-3 align-items-center">
+        <div class="col">
+            <h2><i class="fas fa-gem me-2"></i>Развитие Сфер</h2>
+            <p class="lead">Ваши задачи на {{ date_today_str }}</p>
+        </div>
+        <div class="col-md-auto"> {# Добавлен столбец для кнопки настроек #}
+            <button class="btn btn-sm btn-outline-secondary" type="button" data-toggle="collapse" data-target="#questSettingsCollapse" aria-expanded="false" aria-controls="questSettingsCollapse">
+                <i class="fas fa-cog"></i> Настройки квеста
+            </button>
+        </div>
+    </div>
+
+    {# Блок настроек квеста - СКРЫВАЕМЫЙ #}
+    <div class="collapse mb-3" id="questSettingsCollapse">
+        <div class="card card-body bg-light"> {# Добавлен класс bg-light для фона #}
+            <form id="questSettingsForm"> {# Убрал action и method, т.к. отправка через JS #}
+                <div class="form-row"> {# Используем form-row для Bootstrap 4 #}
+                    <div class="form-group col-md-6">
+                        <label for="prioritySphere">Приоритетная сфера</label>
+                        <select id="prioritySphere" name="priority_sphere_name" class="form-control form-control-sm">
+                            <option value="">Смешанный (все сферы)</option>
+                            {% for sphere_name in SPHERE_DEFINITIONS.keys() %}
+                                <option value="{{ sphere_name }}" {% if quest and quest.priority_sphere_name == sphere_name %}selected{% endif %}>{{ sphere_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="difficultyLevel">Сложность квеста</label>
+                        <select id="difficultyLevel" name="difficulty_level" class="form-control form-control-sm">
+                            <option value="easy" {% if quest and quest.difficulty_level == 'easy' %}selected{% endif %}>Легко (меньше задач)</option>
+                            <option value="medium" {% if not quest or quest.difficulty_level == 'medium' %}selected{% endif %}>Средне (стандарт)</option>
+                            <option value="hard" {% if quest and quest.difficulty_level == 'hard' %}selected{% endif %}>Сложно (больше задач)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="button" id="saveQuestSettingsBtn" class="btn btn-sm btn-info">Применить настройки и обновить квест</button> {# Изменен тип на button, т.к. отправка через JS #}
+            </form>
+        </div>
+    </div>
+
+    {% if quest %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white"> {# Этот заголовок останется синим, что нормально для акцента #}
+            <h5 class="mb-0">Задачи квеста</h5>
+        </div>
+        <div class="card-body">
+            <p>Выполнено замен: <span id="replacements-used">{{ quest.replacements_used }}</span> / {{ max_replacements }}</p>
+            
+            <form id="sphereQuestForm">
+                <input type="hidden" name="quest_date" value="{{ quest.date.isoformat() }}">
+                <ul class="list-group" id="quest-tasks-list">
+                    {% for task in tasks %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center" data-task-id="{{ task.id }}">
+                        <div class="form-check">
+                            <input class="form-check-input task-checkbox" type="checkbox" value="{{ task.id }}" id="task_{{ task.id }}" {% if task.is_completed %}checked{% endif %}>
+                            <label class="form-check-label" for="task_{{ task.id }}">
+                                <strong>[{{ task.sphere_name }}]</strong> {{ task.task_text }}
+                            </label>
+                        </div>
+                        {% if quest.replacements_used < max_replacements %}
+                        <button type="button" class="btn btn-sm btn-outline-warning replace-task-btn" data-task-id="{{ task.id }}">
+                            <i class="fas fa-exchange-alt"></i> Заменить
+                        </button>
+                        {% endif %}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </form>
+        </div>
+        <div class="card-footer text-end">
+            <button type="button" class="btn btn-success" id="saveQuestProgressBtn"><i class="fas fa-save me-1"></i> Сохранить прогресс</button>
+            <!-- <button type="button" class="btn btn-info" id="addQuestTaskBtn"><i class="fas fa-plus me-1"></i> Добавить задачу</button> -->
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning" role="alert">
+        Квест на сегодня еще не создан или не удалось его загрузить.
+    </div>
+    {% endif %}
+
+    <div class="mt-3">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary"><i class="fas fa-arrow-left me-1"></i> На главную</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const questDate = document.querySelector('input[name="quest_date"]').value;
+
+    // Сохранение прогресса выполнения задач
+    document.getElementById('saveQuestProgressBtn').addEventListener('click', function () {
+        const tasksToSave = [];
+        document.querySelectorAll('.task-checkbox').forEach(checkbox => {
+            tasksToSave.push({
+                id: parseInt(checkbox.value),
+                completed: checkbox.checked
+            });
+        });
+
+        fetch("{{ url_for('save_sphere_quest_progress') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}' // Если используете CSRF
+            },
+            body: JSON.stringify({ tasks: tasksToSave, date: questDate })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message) {
+                showFlash(data.message, 'success');
+            } else if (data.error) {
+                showFlash(data.error, 'danger');
+            }
+        })
+        .catch(error => {
+            console.error('Ошибка сохранения:', error);
+            showFlash('Ошибка при сохранении прогресса квеста.', 'danger');
+        });
+    });
+
+    // Замена задачи
+    document.querySelectorAll('.replace-task-btn').forEach(button => {
+        button.addEventListener('click', function () {
+            const taskIdToReplace = this.dataset.taskId;
+            if (!confirm('Вы уверены, что хотите заменить эту задачу?')) return;
+
+            fetch("{{ url_for('replace_sphere_quest_task') }}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+                },
+                body: JSON.stringify({ task_id: parseInt(taskIdToReplace), date: questDate })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.quest) {
+                    showFlash(data.message || 'Задача заменена!', 'success');
+                    // Перезагружаем страницу, чтобы отобразить обновленный квест
+                    // В более сложном варианте можно было бы обновить DOM динамически
+                    window.location.reload(); 
+                } else if (data.error) {
+                    showFlash(data.error, 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка замены:', error);
+                showFlash('Ошибка при замене задачи.', 'danger');
+            });
+        });
+    });
+
+    // Сохранение настроек квеста (приоритетная сфера, сложность)
+    const saveQuestSettingsBtn = document.getElementById('saveQuestSettingsBtn');
+    if (saveQuestSettingsBtn) {
+        saveQuestSettingsBtn.addEventListener('click', function() {
+            const prioritySphere = document.getElementById('prioritySphere').value;
+            const difficultyLevel = document.getElementById('difficultyLevel').value;
+
+            fetch("{{ url_for('update_sphere_quest_settings') }}", { // Нужен новый эндпоинт
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() if csrf_token else "" }}'
+                },
+                body: JSON.stringify({ 
+                    date: questDate, 
+                    priority_sphere_name: prioritySphere, 
+                    difficulty_level: difficultyLevel 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    showFlash(data.message, 'success');
+                    window.location.reload(); // Перезагружаем для применения настроек и генерации нового квеста
+                } else if (data.error) {
+                    showFlash(data.error, 'danger');
+                }
+            })
+            .catch(error => console.error('Ошибка сохранения настроек квеста:', error));
+        });
+    }
+});
+</script>
+{% endblock %}

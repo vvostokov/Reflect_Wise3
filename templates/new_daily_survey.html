@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Дневной опрос - Reflect Wise{% endblock %}
+
+{% block head_extra %}
+    <style>
+        h1 { color: #007bff; text-align: center; margin-bottom: 20px; }
+        .logo-placeholder {
+            display: block; margin: 0 auto 20px auto; width: 60px; height: 60px;
+            background-color: #007bff;
+            border-radius: 50%;
+            line-height: 60px; text-align: center; color: white; font-weight: bold;
+        }
+        .back-link { display: block; margin-top: 20px; text-align: center; color: #007bff; font-weight: bold; }
+        .back-link:hover { text-decoration: underline; }
+        .date-carousel { display: flex; justify-content: center; align-items: center; margin-bottom: 25px; flex-wrap: wrap; }
+        .date-carousel-item {
+            padding: 8px 12px; margin: 5px; border: 1px solid #dee2e6;
+            border-radius: 5px; cursor: pointer; background-color: #f8f9fa;
+            color: #212529; text-decoration: none; font-size: 0.9em;
+        }
+        .date-carousel-item:hover { background-color: #e9ecef; color: #000; }
+        .date-carousel-item.selected { background-color: #007bff; color: #fff; border-color: #007bff; font-weight: bold; }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container card shadow-sm p-4">
+        <div class="text-center mb-4">
+            <div class="logo-placeholder">RW</div>
+            <h1>Дневной опрос</h1>
+        </div>
+
+        <form method="post" id="dailySurveyForm">
+            <div class="form-group">
+                <label for="selected_date_display">Дата опроса:</label>
+                <div class="date-carousel">
+                    {% for date_option in carousel_dates %}
+                        <a href="{{ url_for('new_daily_survey', date=date_option.iso_value) }}"
+                           class="date-carousel-item {% if date_option.is_selected %}selected{% endif %}"
+                           data-date-iso="{{ date_option.iso_value }}">
+                            {{ date_option.display_text }}
+                        </a>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="selected_date" id="selected_date_hidden" value="{{ selected_date_iso }}">
+            </div>
+
+            <hr class="my-3">
+
+            <div class="form-group">
+                <label for="q1_current_feeling">1. Как я себя чувствую прямо сейчас (эмоционально и физически)?</label>
+                <textarea class="form-control" id="q1_current_feeling" name="q1_current_feeling" rows="2">{{ survey.q1_current_feeling if survey else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="q2_morning_intentions_follow">2. Насколько успешно я сегодня следую утренним намерениям и планам? Что помогает, а что мешает?</label>
+                <textarea class="form-control" id="q2_morning_intentions_follow" name="q2_morning_intentions_follow" rows="2">{{ survey.q2_morning_intentions_follow if survey else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="q3_unexpected_challenges_reaction">3. С какими неожиданными вызовами или возможностями я столкнулся(лась) сегодня и как я на них отреагировал(а)?</label>
+                <textarea class="form-control" id="q3_unexpected_challenges_reaction" name="q3_unexpected_challenges_reaction" rows="3">{{ survey.q3_unexpected_challenges_reaction if survey else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="q4_energy_drain_gain">4. Что сегодня больше всего отняло у меня энергии, а что, наоборот, добавило сил или вдохновения?</label>
+                <textarea class="form-control" id="q4_energy_drain_gain" name="q4_energy_drain_gain" rows="3">{{ survey.q4_energy_drain_gain if survey else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="q5_small_progress">5. Какой небольшой, но значимый прогресс в своих целях или личном развитии я могу отметить сегодня?</label>
+                <textarea class="form-control" id="q5_small_progress" name="q5_small_progress" rows="2">{{ survey.q5_small_progress if survey else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="q6_focus_distraction">6. Насколько я сегодня был(а) сфокусирован(а) на важном? Что было главным отвлечением и как я с ним справился(лась)?</label>
+                <textarea class="form-control" id="q6_focus_distraction" name="q6_focus_distraction" rows="3">{{ survey.q6_focus_distraction if survey else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="q7_action_for_better_day">7. Какое одно небольшое действие я могу предпринять до конца дня, чтобы он стал еще чуточку лучше или чтобы подготовиться к завтрашнему дню?</label>
+                <textarea class="form-control" id="q7_action_for_better_day" name="q7_action_for_better_day" rows="2">{{ survey.q7_action_for_better_day if survey else '' }}</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block mt-4"><i class="fas fa-save mr-2"></i>Сохранить опрос</button>
+        </form>
+
+        <a href="{{ url_for('index') }}" class="back-link"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Скрипты, если понадобятся
+</script>
+{% endblock %}

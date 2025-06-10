@@ -1,0 +1,8 @@
+/* static/css/style.css */
+body {
+    font-family: 'Arial', sans-serif;
+}
+
+.content-container {
+    min-height: calc(100vh - 140px); /* Пример: высота экрана минус высота навбара и футера */
+}

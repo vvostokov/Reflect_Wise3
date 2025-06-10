@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Дневной опросник - Reflect Wise{% endblock %}
+
+{% block head_extra %}
+<style>
+    .question-block {
+        margin-bottom: 1.5rem;
+    }
+    .question-block label {
+        font-weight: 500;
+    }
+    .question-block small.form-text {
+        font-size: 0.85em;
+    }
+    .hint-btn {
+        font-size: 0.8em;
+        padding: 0.1rem 0.4rem;
+        margin-left: 8px;
+    }
+    .hint-text {
+        font-size: 0.85em;
+        color: #555;
+        background-color: #f8f9fa;
+        padding: 8px;
+        border-radius: 4px;
+        margin-top: 5px;
+        display: none; /* Скрыто по умолчанию */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container card shadow-sm p-4">
+    <div class="text-center mb-4">
+        <h1><i class="fas fa-sun mr-2"></i>Дневной опросник</h1>
+        <p class="lead">Ответьте на несколько вопросов для рефлексии в течение дня.</p>
+    </div>
+
+    <form method="post">
+        <input type="hidden" name="selected_date" value="{{ selected_date_iso }}">
+        <div class="form-group">
+            <label for="selected_date_display">Дата опросника:</label>
+            <div class="date-carousel">
+                {% for date_option in carousel_dates %}
+                    <a href="{{ url_for('daily_survey_page', date=date_option.iso_value) }}"
+                       class="date-carousel-item {% if date_option.is_selected %}selected{% endif %}"
+                       data-date-iso="{{ date_option.iso_value }}">
+                        {{ date_option.display_text }}
+                    </a>
+                {% endfor %}
+            </div>
+        </div>
+        <hr>
+
+        <div class="question-block">
+            <label for="q1_current_feeling">1. Как я себя чувствую прямо сейчас (эмоционально и физически)?</label>
+            <small class="form-text text-muted">Позволяет сделать моментальный срез текущего состояния.</small>
+            <textarea class="form-control" id="q1_current_feeling" name="q1_current_feeling" rows="2">{{ survey.q1_current_feeling if survey else '' }}</textarea>
+        </div>
+
+        <div class="question-block">
+            <label for="q2_morning_intentions_follow">2. Насколько успешно я сегодня следую утренним намерениям (качества, настрой, забота о себе)?</label>
+            <small class="form-text text-muted">Создает связь с утренним планированием.</small>
+            <textarea class="form-control" id="q2_morning_intentions_follow" name="q2_morning_intentions_follow" rows="2">{{ survey.q2_morning_intentions_follow if survey else '' }}</textarea>
+        </div>
+
+        <div class="question-block">
+            <label for="q3_unexpected_challenges_reaction">3. С какими неожиданными вызовами или задачами я столкнулся(лась) сегодня и как я на них отреагировал(а)?</label>
+            <small class="form-text text-muted">Фокусируется на адаптивности и реакциях в моменте.</small>
+            <textarea class="form-control" id="q3_unexpected_challenges_reaction" name="q3_unexpected_challenges_reaction" rows="3">{{ survey.q3_unexpected_challenges_reaction if survey else '' }}</textarea>
+        </div>
+
+        <div class="question-block">
+            <label for="q4_energy_drain_gain">4. Что сегодня больше всего отняло у меня энергии, а что, наоборот, добавило сил?
+                <button type="button" class="btn btn-outline-info btn-sm hint-btn" data-hint-target="hint_q4">Подсказка</button>
+            </label>
+            <small class="form-text text-muted">Помогает выявить "пожиратели" и "источники" энергии.</small>
+            <div class="hint-text" id="hint_q4">Это могут быть люди, задачи, новости, ваши собственные мысли, физическая активность, еда, отдых и т.д.</div>
+            <textarea class="form-control" id="q4_energy_drain_gain" name="q4_energy_drain_gain" rows="3">{{ survey.q4_energy_drain_gain if survey else '' }}</textarea>
+        </div>
+
+        <div class="question-block">
+            <label for="q5_small_progress">5. Какой небольшой, но значимый прогресс (в делах, самочувствии, отношениях) я могу отметить на данный момент?</label>
+            <small class="form-text text-muted">Мотивирует и поддерживает ощущение движения вперед.</small>
+            <textarea class="form-control" id="q5_small_progress" name="q5_small_progress" rows="2">{{ survey.q5_small_progress if survey else '' }}</textarea>
+        </div>
+
+        <div class="question-block">
+            <label for="q6_focus_distraction">6. Насколько я сегодня был(а) сфокусирован(а) на важном? Что было главным отвлечением?</label>
+            <small class="form-text text-muted">Помогает выявить паттерны отвлечений.</small>
+            <textarea class="form-control" id="q6_focus_distraction" name="q6_focus_distraction" rows="2">{{ survey.q6_focus_distraction if survey else '' }}</textarea>
+        </div>
+
+        <div class="question-block">
+            <label for="q7_action_for_better_day">7. Какое одно небольшое действие я могу предпринять до конца дня, чтобы он стал еще лучше или чтобы приблизиться к своим целям?</label>
+            <small class="form-text text-muted">Проактивный вопрос, нацеленный на немедленное позитивное действие.</small>
+            <textarea class="form-control" id="q7_action_for_better_day" name="q7_action_for_better_day" rows="2">{{ survey.q7_action_for_better_day if survey else '' }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block mt-4"><i class="fas fa-save mr-2"></i>Сохранить ответы</button>
+    </form>
+
+    <a href="{{ url_for('index') }}" class="btn btn-secondary btn-block mt-3"><i class="fas fa-arrow-left mr-2"></i>Вернуться на главную</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.hint-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const targetId = this.dataset.hintTarget;
+            const hintTextElement = document.getElementById(targetId);
+            if (hintTextElement) {
+                hintTextElement.style.display = hintTextElement.style.display === 'none' || hintTextElement.style.display === '' ? 'block' : 'none';
+            }
+        });
+    });
+});
+</script>
+{% endblock %}
