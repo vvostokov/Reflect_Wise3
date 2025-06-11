@@ -41,7 +41,7 @@ class MockUser:
 # Временное создание таблиц.
 # Эту строку нужно ЗАКОММЕНТИРОВАТЬ или УДАЛИТЬ после того, как таблицы будут созданы в БД на Render.
 # Она создаст таблицы DailyReport, Plan, EmotionalReport, User.
-#Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
+    Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
 
 
 # Функция для получения сессии базы данных (импортируется из models.py)
@@ -2405,6 +2405,7 @@ def daily_tasks_manager(current_user_id):
 
         # GET-запрос
         tasks_for_page = []
+        tasks_from_storage = [] # <--- Инициализируем здесь
         if plan_obj and plan_obj.managed_daily_tasks:
             try:
                 # Загружаем существующие задачи; они могут содержать измененные пользователем статусы/комментарии
