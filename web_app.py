@@ -2,10 +2,10 @@ import os
 import hashlib
 import hmac
 import urllib.parse
-import time # Для time.sleep
-import markdown # Для обработки markdown
-import json # Для работы с JSON для main_goals и task_checkin_data
-import requests # Для HTTP-запросов к VK API
+import time  # Для time.sleep
+import markdown  # Для обработки markdown
+import json  # Для работы с JSON для main_goals и task_checkin_data
+import requests # Для HTTP-запросов к VK API 
 from functools import wraps # Добавлен импорт timezone
 from datetime import datetime, date, timedelta, timezone
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify, make_response # Добавлен make_response
@@ -41,35 +41,7 @@ class MockUser:
 # Временное создание таблиц.
 # Эту строку нужно ЗАКОММЕНТИРОВАТЬ или УДАЛИТЬ после того, как таблицы будут созданы в БД на Render.
 # Она создаст таблицы DailyReport, Plan, EmotionalReport, User.
-# Base.metadata.create_all(engine) # Рекомендуется вызывать один раз при старте или использовать миграции
-
-# --- Обеспечение существования пользователя по умолчанию для локальной разработки ---
-if app.config.get('LOCAL_DEV_NO_LOGIN'):
-    default_user_id_val = app.config.get('DEFAULT_DEV_USER_ID', 1)
-    db_startup_check = SessionLocal()
-    try:
-        user = db_startup_check.query(User).filter_by(id=default_user_id_val).first()
-        if not user:
-            print(f"LOCAL_DEV_NO_LOGIN: Default user ID {default_user_id_val} not found. Creating...")
-            default_user = User(
-                id=default_user_id_val,
-                first_name="Dev",
-                last_name="User",
-                username=f"dev_user_{default_user_id_val}",
-                telegram_id=f"mock_tg_{default_user_id_val}"
-            )
-            db_startup_check.add(default_user)
-            db_startup_check.commit()
-            print(f"LOCAL_DEV_NO_LOGIN: Default user ID {default_user_id_val} created.")
-    except Exception as e_startup:
-        db_startup_check.rollback()
-        print(f"Error ensuring default dev user: {e_startup}")
-    finally:
-        db_startup_check.close()
-
-# Эту строку нужно ЗАКОММЕНТИРОВАТЬ или УДАЛИТЬ после того, как таблицы будут созданы в БД на Render.
-# Она создаст таблицы DailyReport, Plan, EmotionalReport, User.
-# Base.metadata.create_all(engine) # Рекомендуется вызывать один раз при старте или использовать миграции
+#Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
 
 
 # Функция для получения сессии базы данных (импортируется из models.py)
@@ -116,6 +88,31 @@ def login_required_custom(f):
                 db_for_check.close()
     return decorated_function
 
+# --- Обеспечение существования пользователя по умолчанию для локальной разработки ---
+# Этот блок должен выполняться один раз при старте приложения, если LOCAL_DEV_NO_LOGIN включен.
+if app.config.get('LOCAL_DEV_NO_LOGIN'):
+    with app.app_context(): # Гарантируем контекст приложения для доступа к app.config
+        default_user_id_val = app.config.get('DEFAULT_DEV_NO_LOGIN_USER_ID', 1) # Используем более явное имя для ID
+        db_startup_check = SessionLocal()
+        try:
+            user = db_startup_check.query(User).filter_by(id=default_user_id_val).first()
+            if not user:
+                print(f"LOCAL_DEV_NO_LOGIN: Default user ID {default_user_id_val} not found. Creating...")
+                default_user = User(
+                    id=default_user_id_val, # Устанавливаем ID явно
+                    first_name="Dev",
+                    last_name="User",
+                    username=f"dev_user_{default_user_id_val}",
+                    telegram_id=f"mock_tg_{default_user_id_val}" # Генерируем мок-ID
+                )
+                db_startup_check.add(default_user)
+                db_startup_check.commit()
+                print(f"LOCAL_DEV_NO_LOGIN: Default user ID {default_user_id_val} created.")
+        except Exception as e_startup:
+            db_startup_check.rollback()
+            print(f"Error ensuring default dev user: {e_startup}")
+        finally:
+            db_startup_check.close()
 # --- Константы для Квеста Развития Сфер ---
 SPHERE_DEFINITIONS = {
     "Здоровье": [
@@ -2360,6 +2357,7 @@ def daily_tasks_manager(current_user_id):
                     source = task_dto.get('source')
                     source_id = task_dto.get('source_id') # Это ID оригинальной записи (SphereQuestTask, DailyHabitEntry)
                     status_done = task_dto.get('status') == 'done'
+                    status_partial = task_dto.get('status') == 'partial' # Учитываем частичное выполнение
                     comment = task_dto.get('comment', '')
                     is_excluded = task_dto.get('is_excluded', False)
 
@@ -2381,15 +2379,18 @@ def daily_tasks_manager(current_user_id):
                                 recalculate_habit_streak(db, parent_habit)
                                 if parent_habit.formation_streak >= parent_habit.formation_target_days and parent_habit.is_active:
                                     parent_habit.is_active = False
-                    elif source == 'plan_item' and original_plan_item_id_from_dto:
-                        pi_to_update = db.query(PlanItem).filter(PlanItem.id == original_plan_item_id_from_dto, PlanItem.user_id == current_user_id).first()
+                    elif source == 'plan_item':
+                        # Используем 'original_item_id' или 'source_id' для идентификации PlanItem
+                        plan_item_id_to_sync = task_dto.get('original_item_id') or task_dto.get('source_id')
+                        if not plan_item_id_to_sync: continue # Не можем синхронизировать без ID
+
+                        pi_to_update = db.query(PlanItem).filter(PlanItem.id == plan_item_id_to_sync, PlanItem.user_id == current_user_id).first()
                         if pi_to_update:
                             if status_done:
                                 pi_to_update.status = PlanItemStatus.DONE
+                            elif status_partial:
+                                pi_to_update.status = PlanItemStatus.IN_PROGRESS # Или другой статус для частичного
                             else:
-                                # Если снимаем галочку "выполнено", возвращаем в TODO.
-                                # Если ранее был IN_PROGRESS, можно сделать более сложную логику,
-                                # но для простоты daily_tasks_manager -> TODO.
                                 if pi_to_update.status == PlanItemStatus.DONE: # Меняем только если был DONE
                                     pi_to_update.status = PlanItemStatus.TODO 
                             # Комментарии для PlanItem пока не синхронизируем из этого интерфейса

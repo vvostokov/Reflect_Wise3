@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let currentTasks = [];
     try {
         const rawTasksData = '{{ tasks | tojson | safe }}';
-        currentTasks = JSON.parse(decodeHtmlEntities(rawTasksData));
+        currentTasks = JSON.parse(rawTasksData);
         if (!Array.isArray(currentTasks)) {
             console.warn("Данные задач из Jinja не являются массивом, инициализируем пустым.");
             currentTasks = [];
