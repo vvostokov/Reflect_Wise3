@@ -41,7 +41,8 @@ class MockUser:
 # Временное создание таблиц.
 # Эту строку нужно ЗАКОММЕНТИРОВАТЬ или УДАЛИТЬ после того, как таблицы будут созданы в БД на Render.
 # Она создаст таблицы DailyReport, Plan, EmotionalReport, User.
-    Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
+
+Base.metadata.create_all(engine) # Убедитесь, что таблица Recommendation также создается
 
 
 # Функция для получения сессии базы данных (импортируется из models.py)
